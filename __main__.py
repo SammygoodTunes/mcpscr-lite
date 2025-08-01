@@ -35,12 +35,9 @@ def main() -> None:
             mcpscr.update()
         elif options == 'c':
             mcpscr.cleanup()
+            mcpscr.update()
         elif options == 's':
             mcpscr.run_game()
-        elif options == "a":
-            with open("NoiseGeneratorPerlin.java") as f:
-                data = f.read()
-            print(javaparser.find_doubles(data))
 
 if __name__ == '__main__':
     main()

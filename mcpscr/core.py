@@ -32,6 +32,8 @@ class MCPSCR:
             logger.info('Sources not found, running decompiler')
             if not utils.mcp_decompile(self.mcp_dir):
                 raise Exception("Failed to decompile sources")
+            if not utils.mcp_recompile(self.mcp_dir):
+                raise Exception("Failed to decompile sources")
         logger.info('Welcome to MCPSCR-Lite!')
 
     def randomise(self) -> None:
@@ -40,7 +42,7 @@ class MCPSCR:
         :return:
         """
         logger.info("Randomising")
-        files = glob(path.join(self.mcp_dir, "**/NoiseGenerator*.java"), recursive=True)
+        files = glob(path.join(self.mcp_dir, "**/*.java"), recursive=True)
         changes = 0
         for file in files:
             with open(file) as f:
@@ -58,10 +60,10 @@ class MCPSCR:
                         end = doubles[j + 1][1].column - 1
                     else:
                         end = len(line)
-                    if randint(1, 100) <= 90:
+                    if randint(1, 100) <= 97:
                         value = double[0]
                     else:
-                        value = f'{float(double[0][:-1]) + uniform(0, 100):.2f}D'
+                        value = f'{float(double[0][:-1]) + uniform(0, 20):.2f}D'
                         changes += 1
                     l += line[start:col] + value + line[col + length:end]
                     start = end
