@@ -98,9 +98,9 @@ then the game may or may not work as intended.
 
 ### Dependencies
 
-| Name | Version | Required? |
-|------|---------|-----------|
-| java | ^0.13.0 | Yes       |
+| Name     | Version | Required? |
+|----------|---------|-----------|
+| javalang | ^0.13.0 | Yes       |
 
 
 
