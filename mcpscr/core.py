@@ -90,7 +90,7 @@ class MCPSCR:
             logger.info("Randomising from Noise files")
             self.randomise(f'sources/{source_type}/**/Noise*.java', prob)
             return
-        elif randomiser_option == 'n':
+        elif randomiser_option == 'm':
             logger.info("Randomising from Models files")
             self.randomise(f'sources/{source_type}/**/Model*.java', prob)
             return
