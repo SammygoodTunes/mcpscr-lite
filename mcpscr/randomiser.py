@@ -1,0 +1,65 @@
+"""
+MCPSCR Randomiser
+"""
+from javalang.tokenizer import Position
+from random import randint, uniform
+
+
+def randomise_doubles(line: str, doubles: list[tuple[str, Position]], prob: int) -> tuple[str, int]:
+    """
+    Randomise from a line of code (not an entire file)
+    :param line: Line of code
+    :param doubles: Double values and positions
+    :param prob: Probability of success (0-100)
+    :return:
+    """
+    changes = 0
+    l = ""
+    if not doubles:
+        return line, changes
+    start = 0
+    for j, double in enumerate(doubles):
+        col = double[1].column - 1
+        length = len(double[0])
+        if j < len(doubles) - 1:
+            end = doubles[j + 1][1].column - 1
+        else:
+            end = len(line)
+        if randint(0, 100) > 100 - prob:
+            value = f'{float(double[0][:-1]) + uniform(0, 20):.2f}D'
+            changes += 1
+        else:
+            value = double[0]
+        l += line[start:col] + value + line[col + length:end]
+        start = end
+    return l, changes
+
+
+def randomise_floats(line: str, floats: list[tuple[str, Position]], prob: int) -> tuple[str, int]:
+    """
+    Randomise from a line of code (not an entire file)
+    :param line: Line of code
+    :param floats: Float values and positions
+    :param prob: Probability of success (0-100)
+    :return:
+    """
+    changes = 0
+    l = ""
+    if not floats:
+        return line, changes
+    start = 0
+    for j, double in enumerate(floats):
+        col = double[1].column - 1
+        length = len(double[0])
+        if j < len(floats) - 1:
+            end = floats[j + 1][1].column - 1
+        else:
+            end = len(line)
+        if randint(0, 100) > 100 - prob:
+            value = f'{float(double[0][:-1]) + uniform(0, 20):.2f}F'
+            changes += 1
+        else:
+            value = double[0]
+        l += line[start:col] + value + line[col + length:end]
+        start = end
+    return l, changes

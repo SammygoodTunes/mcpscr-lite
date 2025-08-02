@@ -2,7 +2,7 @@
 MCPSCR Core
 """
 
-from mcpscr import utils, javaparser
+from mcpscr import utils, javaparser, randomiser
 from mcpscr.logger import logger
 from glob import glob
 from random import randint, uniform
@@ -22,7 +22,7 @@ class MCPSCR:
 
     def prepare(self) -> None:
         """
-        Start MCPSCR
+        Prepare MCPSCR
         :return:
         """
         logger.info(f"MCP Directory: {self.mcp_dir}")
@@ -36,43 +36,71 @@ class MCPSCR:
                 raise Exception("Failed to decompile sources")
         logger.info('Welcome to MCPSCR-Lite!')
 
-    def randomise(self) -> None:
+    def main_menu(self) -> None:
+        """
+        Start MCPSCR main menu
+        :return:
+        """
+        running = True
+        while running:
+            option = input("[R] Randomise / [S] Start game / [C] Clean up / [E] Exit: ").lower()
+            if option == 'e':
+                running = False
+            elif option == 'r':
+                self.randomiser_menu()
+            elif option == 'c':
+                self.cleanup()
+                self.update()
+            elif option == 's':
+                self.run_game()
+
+    def randomiser_menu(self) -> None:
+        """
+        Show MCPSCR randomiser menu
+        :return:
+        """
+        randomiser_option = input("Randomise: [N] Noise Gen / [M] Models / [A] All: ").lower()
+        try:
+            prob = int(input("Probability: "))
+            if prob < 0 or prob > 100:
+                raise ValueError
+        except ValueError:
+            logger.error("Invalid probability, must be an int between 0 and 100")
+        if randomiser_option == 'a':
+            logger.info("Randomising from all files")
+            self.randomise('**/*.java', prob)
+        elif randomiser_option == 'n':
+            logger.info("Randomising from Noise files")
+            self.randomise('**/Noise*.java', prob)
+        elif randomiser_option == 'n':
+            logger.info("Randomising from Models files")
+            self.randomise('**/Model*.java', prob)
+
+
+    def randomise(self, token: str, prob: int) -> None:
         """
         Randomise some files
+        :param token:
+        :param prob:
         :return:
         """
         logger.info("Randomising")
-        files = glob(path.join(self.mcp_dir, "**/*.java"), recursive=True)
+        files = glob(path.join(self.mcp_dir, token), recursive=True)
         changes = 0
         for file in files:
             with open(file) as f:
                 data_lines = f.readlines()
             for i, line in enumerate(data_lines):
-                doubles = javaparser.find_doubles(line)
-                if not doubles:
-                    continue
-                l = ""
-                start = 0
-                for j, double in enumerate(doubles):
-                    col = double[1].column - 1
-                    length = len(double[0])
-                    if j < len(doubles) - 1:
-                        end = doubles[j + 1][1].column - 1
-                    else:
-                        end = len(line)
-                    if randint(1, 100) <= 97:
-                        value = double[0]
-                    else:
-                        value = f'{float(double[0][:-1]) + uniform(0, 20):.2f}D'
-                        changes += 1
-                    l += line[start:col] + value + line[col + length:end]
-                    start = end
+                l = line
+                l, c = randomiser.randomise_doubles(l, javaparser.find_doubles(line), prob)
+                changes += c
+                l, c = randomiser.randomise_floats(l, javaparser.find_floats(l), prob)
+                changes += c
                 data_lines[i] = l
-
             with open(file, 'w') as f:
                 f.writelines(data_lines)
-
         logger.info(f'{changes} change(s) made!')
+        self.update()
 
     def update(self) -> None:
         """

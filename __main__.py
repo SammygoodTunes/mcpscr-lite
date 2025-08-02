@@ -25,19 +25,7 @@ def main() -> None:
         Exception("Invalid MCP directory")
     mcpscr = MCPSCR(mcp_folder)
     mcpscr.prepare()
-    running = True
-    while running:
-        options = input("[R] Randomise / [S] Start game / [C] Clean up / [E] Exit: ").lower()
-        if options == 'e':
-            running = False
-        elif options == 'r':
-            mcpscr.randomise()
-            mcpscr.update()
-        elif options == 'c':
-            mcpscr.cleanup()
-            mcpscr.update()
-        elif options == 's':
-            mcpscr.run_game()
+    mcpscr.main_menu()
 
 if __name__ == '__main__':
     main()
