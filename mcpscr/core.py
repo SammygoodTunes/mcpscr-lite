@@ -74,7 +74,7 @@ class MCPSCR:
         else:
             logger.error("Invalid source type!")
             return
-        randomiser_option = input("Randomise: [N] Noise Gen / [M] Models / [A] All: ").lower()
+        randomiser_option = input("Randomise: [W] World Gen / [M] Models / [A] All: ").lower()
         try:
             prob = int(input("Probability: "))
             if prob < 0 or prob > 100:
@@ -86,9 +86,13 @@ class MCPSCR:
             logger.info("Randomising from all files")
             self.randomise(f'sources/{source_type}/**/*.java', prob)
             return
-        elif randomiser_option == 'n':
-            logger.info("Randomising from Noise files")
-            self.randomise(f'sources/{source_type}/**/Noise*.java', prob)
+        elif randomiser_option == 'w':
+            logger.info("Randomising from World Gen files")
+            self.randomise([
+                f'sources/{source_type}/**/Noise*.java',
+                f'sources/{source_type}/**/MapGen*.java',
+                f'sources/{source_type}/**/WorldGen*.java'
+            ], prob)
             return
         elif randomiser_option == 'm':
             logger.info("Randomising from Models files")
@@ -97,7 +101,7 @@ class MCPSCR:
         logger.error("Invalid option!")
 
 
-    def randomise(self, token: str, prob: int) -> None:
+    def randomise(self, token: str | list[str], prob: int) -> None:
         """
         Randomise some files
         :param token:
@@ -105,7 +109,13 @@ class MCPSCR:
         :return:
         """
         logger.info("Randomising")
-        files = glob(path.join(self.mcp_dir, token), recursive=True)
+        if isinstance(token, list):
+            files = [
+                j for i in list(map(lambda pattern: glob(path.join(self.mcp_dir, pattern), recursive=True),
+                [f for f in token])) for j in i
+            ]
+        else:
+            files = glob(path.join(self.mcp_dir, token), recursive=True)
         changes = 0
         for file in files:
             with open(file) as f:
