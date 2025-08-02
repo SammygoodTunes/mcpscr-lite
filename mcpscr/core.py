@@ -43,7 +43,10 @@ class MCPSCR:
         """
         running = True
         while running:
-            option = input("[R] Randomise / [S] Start game / [C] Clean up / [E] Exit: ").lower()
+            option = input(
+                "[R] Randomise\n[S] Start game\n[T] Start server"
+                "\n[U] Update\n[C] Clean up \n[E] Exit\n>> "
+            ).lower()
             if option == 'e':
                 running = False
             elif option == 'r':
@@ -53,28 +56,45 @@ class MCPSCR:
                 self.update()
             elif option == 's':
                 self.run_game()
+            elif option == 't':
+                self.run_server()
+            elif option == 'u':
+                self.update()
 
     def randomiser_menu(self) -> None:
         """
         Show MCPSCR randomiser menu
         :return:
         """
+        source_type = input("Source type: [C] Client-side / [S] Server-side: ").lower()
+        if source_type == 'c':
+            source_type = 'minecraft'
+        elif source_type == 's':
+            source_type = 'minecraft_server'
+        else:
+            logger.error("Invalid source type!")
+            return
         randomiser_option = input("Randomise: [N] Noise Gen / [M] Models / [A] All: ").lower()
         try:
             prob = int(input("Probability: "))
             if prob < 0 or prob > 100:
                 raise ValueError
         except ValueError:
-            logger.error("Invalid probability, must be an int between 0 and 100")
+            logger.error("Invalid probability, must be an int between 0 and 100!")
+            return
         if randomiser_option == 'a':
             logger.info("Randomising from all files")
-            self.randomise('**/*.java', prob)
+            self.randomise(f'sources/{source_type}/**/*.java', prob)
+            return
         elif randomiser_option == 'n':
             logger.info("Randomising from Noise files")
-            self.randomise('**/Noise*.java', prob)
+            self.randomise(f'sources/{source_type}/**/Noise*.java', prob)
+            return
         elif randomiser_option == 'n':
             logger.info("Randomising from Models files")
-            self.randomise('**/Model*.java', prob)
+            self.randomise(f'sources/{source_type}/**/Model*.java', prob)
+            return
+        logger.error("Invalid option!")
 
 
     def randomise(self, token: str, prob: int) -> None:
