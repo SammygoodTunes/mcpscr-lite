@@ -116,6 +116,8 @@ class MCPSCR:
                 changes += c
                 l, c = randomiser.randomise_floats(l, javaparser.find_floats(l), prob)
                 changes += c
+                #l, c = randomiser.randomise_incdec(l, javaparser.find_incdec(l), prob)
+                #changes += c
                 data_lines[i] = l
             with open(file, 'w') as f:
                 f.writelines(data_lines)

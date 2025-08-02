@@ -52,3 +52,20 @@ def find_floats(data: str) -> list[tuple[str, tokenizer.Position]]:
         return result
     except tokenizer.LexerError:
         return []
+
+def find_incdec(data: str) -> list[tuple[str, tokenizer.Position]]:
+    """
+    Find all increments/decrements in a data buffer and return a list of tuple results
+    :param data:
+    """
+    tokens = tokenizer.tokenize(data)
+    result = []
+    try:
+        for token in tokens:
+            if data.find("for") != -1:
+                return []
+            if token.value in ['++', '--']:
+                result.append((token.value, token.position))
+        return result
+    except tokenizer.LexerError:
+        return []
