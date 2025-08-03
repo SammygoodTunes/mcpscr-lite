@@ -5,8 +5,10 @@ MCPSCR Core
 from mcpscr import utils, javaparser, randomiser
 from mcpscr.logger import logger
 from glob import glob
-from random import randint, uniform
 from os import path
+from shutil import copytree, rmtree
+from random import seed
+
 
 class MCPSCR:
     """
@@ -15,6 +17,8 @@ class MCPSCR:
 
     def __init__(self, mcp_dir):
         self.mcp_dir = mcp_dir
+        self.probability = 0
+        self.seed = ''
         if not utils.has_supported_system():
             raise Exception(f'System [{utils.OS_SYS}] not supported.')
         if not utils.has_mcp(self.mcp_dir):
@@ -25,15 +29,18 @@ class MCPSCR:
         Prepare MCPSCR
         :return:
         """
-        logger.info(f"MCP Directory: {self.mcp_dir}")
+        logger.info(f'MCP Directory: {self.mcp_dir}')
         if not utils.mcp_setup(self.mcp_dir):
-            raise Exception("Failed to run setup.")
+            raise Exception('Failed to run setup.')
         if not utils.has_mcp_sources(self.mcp_dir):
             logger.info('Sources not found, running decompiler')
             if not utils.mcp_decompile(self.mcp_dir):
-                raise Exception("Failed to decompile sources")
+                raise Exception('Failed to decompile sources')
             if not utils.mcp_recompile(self.mcp_dir):
-                raise Exception("Failed to decompile sources")
+                raise Exception('Failed to decompile sources')
+            if not utils.has_mcp_backup_sources(self.mcp_dir):
+                logger.info('Backing up sources')
+                copytree(path.join(self.mcp_dir, 'sources'), path.join(self.mcp_dir, 'backup'))
         logger.info('Welcome to MCPSCR-Lite!')
 
     def main_menu(self) -> None:
@@ -44,13 +51,15 @@ class MCPSCR:
         running = True
         while running:
             option = input(
-                "[R] Randomise\n[S] Start game\n[T] Start server"
-                "\n[U] Update\n[C] Clean up \n[E] Exit\n>> "
+                '[R] Randomise\n[S] Start game\n[T] Start server'
+                '\n[U] Update\n[X] Quick reset\n[C] Clean up \n[E] Exit\n>> '
             ).lower()
             if option == 'e':
                 running = False
             elif option == 'r':
                 self.randomiser_menu()
+            elif option == 'x':
+                self.reset_sources()
             elif option == 'c':
                 self.cleanup()
                 self.update()
@@ -66,49 +75,52 @@ class MCPSCR:
         Show MCPSCR randomiser menu
         :return:
         """
-        source_type = input("Source type: [C] Client-side / [S] Server-side: ").lower()
+        source_type = input('Source type: [C] Client-side / [S] Server-side: ').lower()
         if source_type == 'c':
             source_type = 'minecraft'
         elif source_type == 's':
             source_type = 'minecraft_server'
         else:
-            logger.error("Invalid source type!")
+            logger.error('Invalid source type!')
             return
-        randomiser_option = input("Randomise: [W] World Gen / [M] Models / [A] All: ").lower()
+        randomiser_option = input('Randomise: [W] World Gen / [M] Models / [A] All: ').lower()
+        self.seed = input('Seed (leave blank for random): ')
+        if not self.seed.strip():
+            self.seed = utils.random_seed(utils.MAX_SEED_LEN)
         try:
-            prob = int(input("Probability: "))
-            if prob < 0 or prob > 100:
+            self.probability = int(input('Probability: '))
+            if self.probability < 0 or self.probability > 100:
                 raise ValueError
         except ValueError:
-            logger.error("Invalid probability, must be an int between 0 and 100!")
+            logger.error('Invalid probability, must be an int between 0 and 100!')
             return
         if randomiser_option == 'a':
-            logger.info("Randomising from all files")
-            self.randomise(f'sources/{source_type}/**/*.java', prob)
+            logger.info('Randomising from all files')
+            self.randomise(f'sources/{source_type}/**/*.java')
             return
         elif randomiser_option == 'w':
-            logger.info("Randomising from World Gen files")
+            logger.info('Randomising from World Gen files')
             self.randomise([
                 f'sources/{source_type}/**/Noise*.java',
                 f'sources/{source_type}/**/MapGen*.java',
                 f'sources/{source_type}/**/WorldGen*.java'
-            ], prob)
+            ])
             return
         elif randomiser_option == 'm':
-            logger.info("Randomising from Models files")
-            self.randomise(f'sources/{source_type}/**/Model*.java', prob)
+            logger.info('Randomising from Models files')
+            self.randomise(f'sources/{source_type}/**/Model*.java')
             return
-        logger.error("Invalid option!")
+        logger.error('Invalid option!')
 
 
-    def randomise(self, token: str | list[str], prob: int) -> None:
+    def randomise(self, token: str | list[str]) -> None:
         """
         Randomise some files
         :param token:
-        :param prob:
         :return:
         """
-        logger.info("Randomising")
+        logger.info(f'Randomising with seed: {self.seed}')
+        seed(self.seed)
         if isinstance(token, list):
             files = [
                 j for i in list(map(lambda pattern: glob(path.join(self.mcp_dir, pattern), recursive=True),
@@ -122,9 +134,9 @@ class MCPSCR:
                 data_lines = f.readlines()
             for i, line in enumerate(data_lines):
                 l = line
-                l, c = randomiser.randomise_doubles(l, javaparser.find_doubles(line), prob)
+                l, c = randomiser.randomise_doubles(l, javaparser.find_doubles(line), self.probability)
                 changes += c
-                l, c = randomiser.randomise_floats(l, javaparser.find_floats(l), prob)
+                l, c = randomiser.randomise_floats(l, javaparser.find_floats(l), self.probability)
                 changes += c
                 #l, c = randomiser.randomise_incdec(l, javaparser.find_incdec(l), prob)
                 #changes += c
@@ -140,7 +152,17 @@ class MCPSCR:
         :return:
         """
         if not utils.mcp_recompile(self.mcp_dir):
-            raise Exception("Could not recompile")
+            raise Exception('Could not recompile')
+
+    def reset_sources(self) -> None:
+        """
+        Replace sources with backup sources
+        :return:
+        """
+        if utils.has_mcp_sources(self.mcp_dir):
+            rmtree(path.join(self.mcp_dir, 'sources'))
+        copytree(path.join(self.mcp_dir, 'backup'), path.join(self.mcp_dir, 'sources'))
+        logger.info("Recompilation necessary to apply changes")
 
     def cleanup(self) -> None:
         """
@@ -148,9 +170,13 @@ class MCPSCR:
         :return:
         """
         if not utils.mcp_cleanup(self.mcp_dir):
-            raise Exception("Could not clean up")
+            raise Exception('Could not clean up')
         if not utils.mcp_decompile(self.mcp_dir):
-            raise Exception("Could not decompile")
+            raise Exception('Could not decompile')
+        if utils.has_mcp_backup_sources(self.mcp_dir):
+            rmtree(path.join(self.mcp_dir, 'backup'))
+        logger.info('Backing up sources')
+        copytree(path.join(self.mcp_dir, 'sources'), path.join(self.mcp_dir, 'backup'))
 
     def run_game(self):
         """
@@ -158,7 +184,7 @@ class MCPSCR:
         :return:
         """
         if not utils.mcp_start_client(self.mcp_dir):
-            raise Exception("Could not run the client")
+            raise Exception('Could not run the client')
 
     def run_server(self):
         """
@@ -166,6 +192,6 @@ class MCPSCR:
         :return:
         """
         if not utils.mcp_start_server(self.mcp_dir):
-            raise Exception("Could not run the server")
+            raise Exception('Could not run the server')
 
 
