@@ -9,27 +9,38 @@ from platform import system as sys
 from glob import glob
 from string import ascii_letters, digits
 
+from mcpscr.logger import logger
+
 OS_SYS = sys().lower()
 
 MCPSCR_ROOT = getcwd()
-
-MCP_ROOT = 'mcp'
-MCP_SRC = path.join(MCP_ROOT, 'sources', 'minecraft')
 
 MCP_SETUP_SCRIPT = 'setup'
 MCP_DECOMP_SCRIPT = 'decompile'
 MCP_RECOMP_SCRIPT = 'recompile'
 MCP_STCL_SCRIPT = 'test_game'
 MCP_STSV_SCRIPT = 'test_server'
+MCP_STCL_SCRIPT2 = 'startclient'
+MCP_STSV_SCRIPT2 = 'startserver'
 MCP_CLEAN_SCRIPT = 'cleanup'
 MCP_SETUP_CMD = f'source {MCP_SETUP_SCRIPT}.sh' if OS_SYS == 'linux' else f'{MCP_SETUP_SCRIPT}.bat'
 MCP_DECOMP_CMD = f'source {MCP_DECOMP_SCRIPT}.sh' if OS_SYS == 'linux' else f'{MCP_DECOMP_SCRIPT}.bat'
 MCP_RECOMP_CMD = f'source {MCP_RECOMP_SCRIPT}.sh' if OS_SYS == 'linux' else f'{MCP_RECOMP_SCRIPT}.bat'
 MCP_STCL_CMD = f'source {MCP_STCL_SCRIPT}.sh' if OS_SYS == 'linux' else f'{MCP_STCL_SCRIPT}.bat'
 MCP_STSV_CMD = f'source {MCP_STSV_SCRIPT}.sh' if OS_SYS == 'linux' else f'{MCP_STSV_SCRIPT}.bat'
+MCP_STCL_CMD2 = f'source {MCP_STCL_SCRIPT2}.sh' if OS_SYS == 'linux' else f'{MCP_STCL_SCRIPT2}.bat'
+MCP_STSV_CMD2 = f'source {MCP_STSV_SCRIPT2}.sh' if OS_SYS == 'linux' else f'{MCP_STSV_SCRIPT2}.bat'
 MCP_CLEAN_CMD = f'source {MCP_CLEAN_SCRIPT}.sh' if OS_SYS == 'linux' else f'{MCP_CLEAN_SCRIPT}.bat'
 
 MAX_SEED_LEN = 16
+
+def get_mcp_sources_name(mcp_dir: str) -> str:
+    """
+    Get the correct MCP sources folder name
+    :param mcp_dir:
+    :return:
+    """
+    return 'sources' if path.exists(path.join(mcp_dir, 'sources')) else 'src'
 
 def has_supported_system() -> bool:
     """
@@ -54,8 +65,9 @@ def has_mcp_sources(mcp_dir: str) -> bool:
     :param mcp_dir:
     :return:
     """
-    sources_dir_exists = path.exists(path.join(mcp_dir, 'sources'))
-    sources_exist = len(glob(path.join(mcp_dir, 'sources/**/*.java'), recursive=True)) > 0
+    sources_dir = get_mcp_sources_name(mcp_dir)
+    sources_dir_exists = path.exists(path.join(mcp_dir, sources_dir))
+    sources_exist = len(glob(path.join(mcp_dir, f'{sources_dir}/**/*.java'), recursive=True)) > 0
     return sources_dir_exists and sources_exist
 
 def has_mcp_backup_sources(mcp_dir: str) -> bool:
@@ -81,6 +93,14 @@ def run_mcp_script(mcp_dir: str, command: str) -> bool:
     chdir(MCPSCR_ROOT)
     return status
 
+def has_mcp_script(mcp_dir: str, script: str) -> bool:
+    """
+    Return True if provided script exists
+    :param mcp_dir:
+    :param script:
+    :return:
+    """
+    return path.isfile(path.join(mcp_dir, script))
 
 def mcp_setup(mcp_dir: str) -> bool:
     """
@@ -88,6 +108,24 @@ def mcp_setup(mcp_dir: str) -> bool:
     :param mcp_dir:
     :return:
     """
+    if not path.exists(path.join(mcp_dir, MCP_SETUP_CMD)):
+        logger.info('Skipping setup as does not exist')
+        if not path.exists(path.join(mcp_dir, 'runtime')):
+            return True
+        # TODO: Support for Windows
+        if run('python2.7 -V', shell=True, executable="/bin/bash").returncode != 0:
+            Exception("Python 2.7 is required!")
+        logger.info('Patching Linux scripts')
+        scripts = glob(path.join(mcp_dir, '*.sh'))
+        for script in scripts:
+            with open(script) as s:
+                data = s.read()
+            if data.find('python2.7') != -1:
+                continue
+            data = data.replace('python', 'python2.7')
+            with open(script, 'w') as s:
+                s.write(data)
+        return True
     return run_mcp_script(mcp_dir, MCP_SETUP_CMD)
 
 
@@ -115,7 +153,7 @@ def mcp_start_client(mcp_dir: str) -> bool:
     :param mcp_dir:
     :return:
     """
-    return run_mcp_script(mcp_dir, MCP_STCL_CMD)
+    return run_mcp_script(mcp_dir, MCP_STCL_CMD if has_mcp_script(mcp_dir, MCP_STCL_CMD) else MCP_STCL_CMD2)
 
 
 def mcp_start_server(mcp_dir: str) -> bool:
@@ -124,7 +162,7 @@ def mcp_start_server(mcp_dir: str) -> bool:
     :param mcp_dir:
     :return:
     """
-    return run_mcp_script(mcp_dir, MCP_STSV_CMD)
+    return run_mcp_script(mcp_dir, MCP_STSV_CMD if has_mcp_script(mcp_dir, MCP_STSV_CMD) else MCP_STSV_CMD2)
 
 def mcp_cleanup(mcp_dir: str) -> bool:
     """

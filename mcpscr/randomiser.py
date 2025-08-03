@@ -2,7 +2,7 @@
 MCPSCR Randomiser
 """
 from javalang.tokenizer import Position
-from random import choice, randint, uniform
+from random import randint, uniform
 
 
 def randomise_doubles(line: str, doubles: list[tuple[str, Position]], prob: int) -> tuple[str, int]:

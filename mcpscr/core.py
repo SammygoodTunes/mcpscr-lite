@@ -40,7 +40,10 @@ class MCPSCR:
                 raise Exception('Failed to decompile sources')
             if not utils.has_mcp_backup_sources(self.mcp_dir):
                 logger.info('Backing up sources')
-                copytree(path.join(self.mcp_dir, 'sources'), path.join(self.mcp_dir, 'backup'))
+                copytree(
+                    path.join(self.mcp_dir, utils.get_mcp_sources_name(self.mcp_dir)),
+                    path.join(self.mcp_dir, 'backup')
+                )
         logger.info('Welcome to MCPSCR-Lite!')
 
     def main_menu(self) -> None:
@@ -62,6 +65,8 @@ class MCPSCR:
                 self.reset_sources()
             elif option == 'c':
                 self.cleanup()
+                if path.exists(path.join(self.mcp_dir, 'runtime')):
+                    continue
                 self.update()
             elif option == 's':
                 self.run_game()
@@ -75,6 +80,7 @@ class MCPSCR:
         Show MCPSCR randomiser menu
         :return:
         """
+        sources_dir = utils.get_mcp_sources_name(self.mcp_dir)
         source_type = input('Source type: [C] Client-side / [S] Server-side: ').lower()
         if source_type == 'c':
             source_type = 'minecraft'
@@ -96,19 +102,19 @@ class MCPSCR:
             return
         if randomiser_option == 'a':
             logger.info('Randomising from all files')
-            self.randomise(f'sources/{source_type}/**/*.java')
+            self.randomise(f'{sources_dir}/{source_type}/**/*.java')
             return
         elif randomiser_option == 'w':
             logger.info('Randomising from World Gen files')
             self.randomise([
-                f'sources/{source_type}/**/Noise*.java',
-                f'sources/{source_type}/**/MapGen*.java',
-                f'sources/{source_type}/**/WorldGen*.java'
+                f'{sources_dir}/{source_type}/**/Noise*.java',
+                f'{sources_dir}/{source_type}/**/MapGen*.java',
+                f'{sources_dir}/{source_type}/**/WorldGen*.java'
             ])
             return
         elif randomiser_option == 'm':
             logger.info('Randomising from Models files')
-            self.randomise(f'sources/{source_type}/**/Model*.java')
+            self.randomise(f'{sources_dir}/{source_type}/**/Model*.java')
             return
         logger.error('Invalid option!')
 
@@ -160,8 +166,11 @@ class MCPSCR:
         :return:
         """
         if utils.has_mcp_sources(self.mcp_dir):
-            rmtree(path.join(self.mcp_dir, 'sources'))
-        copytree(path.join(self.mcp_dir, 'backup'), path.join(self.mcp_dir, 'sources'))
+            rmtree(path.join(self.mcp_dir, utils.get_mcp_sources_name(self.mcp_dir)))
+        copytree(
+            path.join(self.mcp_dir, 'backup'),
+            path.join(self.mcp_dir, utils.get_mcp_sources_name(self.mcp_dir))
+        )
         logger.info("Recompilation necessary to apply changes")
 
     def cleanup(self) -> None:
@@ -176,7 +185,10 @@ class MCPSCR:
         if utils.has_mcp_backup_sources(self.mcp_dir):
             rmtree(path.join(self.mcp_dir, 'backup'))
         logger.info('Backing up sources')
-        copytree(path.join(self.mcp_dir, 'sources'), path.join(self.mcp_dir, 'backup'))
+        copytree(
+            path.join(self.mcp_dir, utils.get_mcp_sources_name(self.mcp_dir)),
+            path.join(self.mcp_dir, 'backup')
+        )
 
     def run_game(self):
         """

@@ -7,7 +7,6 @@
 - **Author:** SammygoodTunes
 """
 
-from mcpscr import javaparser
 from mcpscr.core import MCPSCR
 import tkinter as tk
 from tkinter import filedialog
