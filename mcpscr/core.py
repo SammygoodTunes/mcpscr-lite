@@ -105,9 +105,10 @@ class MCPSCR:
         try:
             range_ = input('Range [MIN MAX]: ').split()
             if len(range_) < 2: raise ValueError
+            if float(range_[0]) >= float(range_[1]): raise ValueError
             self.range = float(range_[0]), float(range_[1])
         except ValueError:
-            logger.error('Invalid range: Both MIN and MAX must floats or ints and be spaced out!')
+            logger.error('Invalid range: MIN and MAX must be floats or ints, be spaced out and MIN < MAX!')
             logger.info(f'Using current range: {self.range}')
         if randomiser_option == 'a':
             logger.info('Randomising from all files')
