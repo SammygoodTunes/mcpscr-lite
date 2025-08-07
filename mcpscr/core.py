@@ -20,6 +20,7 @@ class MCPSCR:
         self.probability = 0
         self.range = (0.0, 20.0)
         self.seed = ''
+        self.blocks = []
         if not utils.has_supported_system():
             raise Exception(f'System [{utils.OS_SYS}] not supported.')
         if not utils.has_mcp(self.mcp_dir):
@@ -46,6 +47,8 @@ class MCPSCR:
                     path.join(self.mcp_dir, utils.get_mcp_sources_name(self.mcp_dir)),
                     path.join(self.mcp_dir, 'backup')
                 )
+        with open(glob(path.join(self.mcp_dir, 'backup', '**/Block.java'), recursive=True)[0]) as blocks_file:
+            self.blocks = javaparser.gather_blocks(blocks_file.read())
         logger.info('Welcome to MCPSCR-Lite!')
 
     def main_menu(self) -> None:
@@ -149,6 +152,8 @@ class MCPSCR:
                 l, c = randomiser.randomise_doubles(l, javaparser.find_doubles(line), self.probability, self.range)
                 changes += c
                 l, c = randomiser.randomise_floats(l, javaparser.find_floats(l), self.probability, self.range)
+                changes += c
+                l, c = randomiser.randomise_blocks(l, javaparser.find_blocks(l, self.blocks), self.probability, self.blocks)
                 changes += c
                 #l, c = randomiser.randomise_incdec(l, javaparser.find_incdec(l), prob)
                 #changes += c

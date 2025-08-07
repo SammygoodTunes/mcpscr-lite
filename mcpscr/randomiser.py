@@ -1,8 +1,10 @@
 """
 MCPSCR Randomiser
 """
+from copy import copy
+
 from javalang.tokenizer import Position
-from random import randint, uniform
+from random import randint, uniform, choice
 
 
 def randomise_doubles(
@@ -103,6 +105,43 @@ def randomise_incdec(line: str, floats: list[tuple[str, Position]], prob: int) -
             changes += 1
         else:
             value = operator[0]
+        l += line[start:col] + value + line[col + length:end]
+        start = end
+    return l, changes
+
+def randomise_blocks(
+        line: str,
+        blocks: list[tuple[str, Position]],
+        prob: int,
+        block_list: list[str]
+) -> tuple[str, int]:
+    """
+    Randomise floats
+    :param line: Line of code
+    :param blocks: Block values and positions
+    :param prob: Probability of success (0-100)
+    :param block_list: List of all block names in the game
+    :return:
+    """
+    changes = 0
+    l = ""
+    if not blocks:
+        return line, changes
+    start = 0
+    for j, block in enumerate(blocks):
+        col = block[1].column - 1
+        length = len(block[0])
+        if j < len(blocks) - 1:
+            end = blocks[j + 1][1].column - 1
+        else:
+            end = len(line)
+        if randint(0, 100) > 100 - prob:
+            temp = copy(block_list)
+            temp.remove(block[0])
+            value = choice(block_list)
+            changes += 1
+        else:
+            value = block[0]
         l += line[start:col] + value + line[col + length:end]
         start = end
     return l, changes
