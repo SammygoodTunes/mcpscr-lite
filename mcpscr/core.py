@@ -18,6 +18,7 @@ class MCPSCR:
     def __init__(self, mcp_dir):
         self.mcp_dir = mcp_dir
         self.probability = 0
+        self.range = (0.0, 20.0)
         self.seed = ''
         if not utils.has_supported_system():
             raise Exception(f'System [{utils.OS_SYS}] not supported.')
@@ -40,6 +41,7 @@ class MCPSCR:
                 raise Exception('Failed to decompile sources')
             if not utils.has_mcp_backup_sources(self.mcp_dir):
                 logger.info('Backing up sources')
+                rmtree(path.join(self.mcp_dir, 'backup'))
                 copytree(
                     path.join(self.mcp_dir, utils.get_mcp_sources_name(self.mcp_dir)),
                     path.join(self.mcp_dir, 'backup')
@@ -98,19 +100,22 @@ class MCPSCR:
             if self.probability < 0 or self.probability > 100:
                 raise ValueError
         except ValueError:
-            logger.error('Invalid probability, must be an int between 0 and 100!')
+            logger.error('Invalid probability: Must be an int between 0 and 100!')
             return
+        try:
+            range_ = input('Range [MIN MAX]: ').split()
+            if len(range_) < 2: raise ValueError
+            self.range = float(range_[0]), float(range_[1])
+        except ValueError:
+            logger.error('Invalid range: Both MIN and MAX must floats or ints and be spaced out!')
+            logger.info(f'Using current range: {self.range}')
         if randomiser_option == 'a':
             logger.info('Randomising from all files')
             self.randomise(f'{sources_dir}/{source_type}/**/*.java')
             return
         elif randomiser_option == 'w':
             logger.info('Randomising from World Gen files')
-            self.randomise([
-                f'{sources_dir}/{source_type}/**/Noise*.java',
-                f'{sources_dir}/{source_type}/**/MapGen*.java',
-                f'{sources_dir}/{source_type}/**/WorldGen*.java'
-            ])
+            self.randomise(f'{sources_dir}/{source_type}/**/*Gen*.java')
             return
         elif randomiser_option == 'm':
             logger.info('Randomising from Models files')
@@ -125,7 +130,7 @@ class MCPSCR:
         :param token:
         :return:
         """
-        logger.info(f'Randomising with seed: {self.seed}')
+        logger.info(f'Randomising with seed [{self.seed}] and range [{self.range}]')
         seed(self.seed)
         if isinstance(token, list):
             files = [
@@ -140,9 +145,9 @@ class MCPSCR:
                 data_lines = f.readlines()
             for i, line in enumerate(data_lines):
                 l = line
-                l, c = randomiser.randomise_doubles(l, javaparser.find_doubles(line), self.probability)
+                l, c = randomiser.randomise_doubles(l, javaparser.find_doubles(line), self.probability, self.range)
                 changes += c
-                l, c = randomiser.randomise_floats(l, javaparser.find_floats(l), self.probability)
+                l, c = randomiser.randomise_floats(l, javaparser.find_floats(l), self.probability, self.range)
                 changes += c
                 #l, c = randomiser.randomise_incdec(l, javaparser.find_incdec(l), prob)
                 #changes += c
@@ -205,5 +210,3 @@ class MCPSCR:
         """
         if not utils.mcp_start_server(self.mcp_dir):
             raise Exception('Could not run the server')
-
-

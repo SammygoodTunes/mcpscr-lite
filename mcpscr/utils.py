@@ -32,6 +32,8 @@ MCP_STCL_CMD2 = f'source {MCP_STCL_SCRIPT2}.sh' if OS_SYS == 'linux' else f'{MCP
 MCP_STSV_CMD2 = f'source {MCP_STSV_SCRIPT2}.sh' if OS_SYS == 'linux' else f'{MCP_STSV_SCRIPT2}.bat'
 MCP_CLEAN_CMD = f'source {MCP_CLEAN_SCRIPT}.sh' if OS_SYS == 'linux' else f'{MCP_CLEAN_SCRIPT}.bat'
 
+MCP_CHECK_PYTHON = f'python2.7 -V 1>/dev/null 2>/dev/null' if OS_SYS == 'linux' else f'python -V 1>NUL 2>NUL'
+
 MAX_SEED_LEN = 16
 
 def get_mcp_sources_name(mcp_dir: str) -> str:
@@ -112,8 +114,7 @@ def mcp_setup(mcp_dir: str) -> bool:
         logger.info('Skipping setup as does not exist')
         if not path.exists(path.join(mcp_dir, 'runtime')):
             return True
-        # TODO: Support for Windows
-        if run('python2.7 -V', shell=True, executable="/bin/bash").returncode != 0:
+        if run(MCP_CHECK_PYTHON, shell=True).returncode != 0:
             Exception("Python 2.7 is required!")
         logger.info('Patching Linux scripts')
         scripts = glob(path.join(mcp_dir, '*.sh'))

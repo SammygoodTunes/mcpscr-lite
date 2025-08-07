@@ -5,12 +5,18 @@ from javalang.tokenizer import Position
 from random import randint, uniform
 
 
-def randomise_doubles(line: str, doubles: list[tuple[str, Position]], prob: int) -> tuple[str, int]:
+def randomise_doubles(
+        line: str,
+        doubles: list[tuple[str, Position]],
+        prob: int,
+        r: tuple[float, float]
+) -> tuple[str, int]:
     """
     Randomise doubles
     :param line: Line of code
     :param doubles: Double values and positions
     :param prob: Probability of success (0-100)
+    :param r: Range (min, max)
     :return:
     """
     changes = 0
@@ -26,7 +32,7 @@ def randomise_doubles(line: str, doubles: list[tuple[str, Position]], prob: int)
         else:
             end = len(line)
         if randint(0, 100) > 100 - prob:
-            value = f'{float(double[0][:-1]) + uniform(0, 20):.2f}D'
+            value = f'{float(double[0][:-1]) + uniform(r[0], r[1]):.2f}D'
             changes += 1
         else:
             value = double[0]
@@ -35,12 +41,18 @@ def randomise_doubles(line: str, doubles: list[tuple[str, Position]], prob: int)
     return l, changes
 
 
-def randomise_floats(line: str, floats: list[tuple[str, Position]], prob: int) -> tuple[str, int]:
+def randomise_floats(
+        line: str,
+        floats: list[tuple[str, Position]],
+        prob: int,
+        r: tuple[float, float]
+) -> tuple[str, int]:
     """
     Randomise floats
     :param line: Line of code
     :param floats: Float values and positions
     :param prob: Probability of success (0-100)
+    :param r: Range (min, max)
     :return:
     """
     changes = 0
@@ -56,7 +68,7 @@ def randomise_floats(line: str, floats: list[tuple[str, Position]], prob: int) -
         else:
             end = len(line)
         if randint(0, 100) > 100 - prob:
-            value = f'{float(decimal[0][:-1]) + uniform(0, 20):.2f}F'
+            value = f'{float(decimal[0][:-1]) + uniform(r[0], r[1]):.2f}F'
             changes += 1
         else:
             value = decimal[0]
