@@ -94,7 +94,7 @@ class MCPSCR:
         else:
             logger.error('Invalid source type!')
             return
-        randomiser_option = input('Randomise: [W] World Gen / [M] Models / [A] All: ').lower()
+        randomiser_option = input('Randomise: [W] World Gen / [M] Models / [E] Entity / [A] All: ').lower()
         self.seed = input('Seed (leave blank for random): ')
         if not self.seed.strip():
             self.seed = utils.random_seed(utils.MAX_SEED_LEN)
@@ -125,6 +125,10 @@ class MCPSCR:
             logger.info('Randomising from Models files')
             self.randomise(f'{sources_dir}/{source_type}/**/Model*.java')
             return
+        elif randomiser_option == 'e':
+            logger.info('Randomising from Entity files')
+            self.randomise(f'{sources_dir}/{source_type}/**/Entity*.java')
+            return
         logger.error('Invalid option!')
 
 
@@ -148,13 +152,16 @@ class MCPSCR:
             with open(file) as f:
                 data_lines = f.readlines()
             for i, line in enumerate(data_lines):
-                l = line
-                l, c = randomiser.randomise_doubles(l, javaparser.find_doubles(line), self.probability, self.range)
+                l, c = randomiser.randomise_doubles(line, javaparser.find_doubles(line), self.probability, self.range)
                 changes += c
                 l, c = randomiser.randomise_floats(l, javaparser.find_floats(l), self.probability, self.range)
                 changes += c
                 l, c = randomiser.randomise_blocks(l, javaparser.find_blocks(l, self.blocks), self.probability, self.blocks)
                 changes += c
+                l, c = randomiser.randomise_ints(l, javaparser.find_ints(l), self.probability, self.range)
+                changes += c
+                #l, c = randomiser.randomise_bool(l, javaparser.find_bools(l), self.probability)
+                #changes += c
                 #l, c = randomiser.randomise_incdec(l, javaparser.find_incdec(l), prob)
                 #changes += c
                 data_lines[i] = l

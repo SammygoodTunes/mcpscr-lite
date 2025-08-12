@@ -92,15 +92,18 @@ Various images on the Internet of MCPSCR (Python) and MCPSCR (Qt) are available 
 
 ### Randomisation features
 
-- Float and double randomisation
-- Incremental/Decremental operator randomisation
-- Block randomisation [only tested on b1.7.3]
+- `float`/`double` randomisation
+- `int` randomisation
+- `bool` randomisation
+- `++`/`--` randomisation
+- `Block` randomisation [only tested on b1.7.3]
 
 ### Presets
 
-- World Gen: All terrain generation and noise-related files
-- Models: All entity model files
-- All: All files
+- `World Gen` — All terrain generation and noise-related files
+- `Models` — All entity model files
+- `Entity` — All entity handler files
+- `All` — All files
 
 ### Compatibility
 

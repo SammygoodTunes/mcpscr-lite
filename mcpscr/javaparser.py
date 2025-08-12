@@ -30,6 +30,7 @@ def find_doubles(data: str) -> list[tuple[str, tokenizer.Position]]:
     except tokenizer.LexerError:
         return []
 
+
 def find_floats(data: str) -> list[tuple[str, tokenizer.Position]]:
     """
     Find all floats in a data buffer and return a list of tuple results
@@ -55,6 +56,26 @@ def find_floats(data: str) -> list[tuple[str, tokenizer.Position]]:
     except tokenizer.LexerError:
         return []
 
+
+def find_ints(data: str) -> list[tuple[str, tokenizer.Position]]:
+    """
+    Find all integers in a data buffer and return a list of tuple results
+    :param data:
+    :return:
+    """
+    tokens = tokenizer.tokenize(data)
+    result = []
+    try:
+        for token in tokens:
+            if data.find("nextInt") == -1:
+                return []
+            if token.value.isdigit() or (token.value.startswith('-') and token.value[1:].isdigit()):
+                result.append((token.value, token.position))
+        return result
+    except tokenizer.LexerError:
+        return []
+
+
 def find_incdec(data: str) -> list[tuple[str, tokenizer.Position]]:
     """
     Find all increments/decrements in a data buffer and return a list of tuple results
@@ -68,6 +89,23 @@ def find_incdec(data: str) -> list[tuple[str, tokenizer.Position]]:
             if data.find("for") != -1:
                 return []
             if token.value in ['++', '--']:
+                result.append((token.value, token.position))
+        return result
+    except tokenizer.LexerError:
+        return []
+
+
+def find_bools(data: str) -> list[tuple[str, tokenizer.Position]]:
+    """
+    Find all bools in a data buffer and return a list of tuple results
+    :param data:
+    :return:
+    """
+    tokens = tokenizer.tokenize(data)
+    result = []
+    try:
+        for token in tokens:
+            if token.value in ['true', 'false']:
                 result.append((token.value, token.position))
         return result
     except tokenizer.LexerError:
