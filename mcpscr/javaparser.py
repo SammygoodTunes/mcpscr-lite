@@ -123,7 +123,9 @@ def find_blocks(data: str, block_list: list[str]) -> list[tuple[str, tokenizer.P
     result = []
     try:
         for token in tokens:
-            if token.value != 'Block' or tokens.__next__().value != '.':
+            if data.find('getFlowVector') != -1 or data.find('tryToCreatePortal') != -1:
+                continue
+            if token.value != 'Block' or tokens.__next__().value != '.' or data.find('canBlockCatchFire') != -1:
                 continue
             t = tokens.__next__()
             if t.value not in block_list:

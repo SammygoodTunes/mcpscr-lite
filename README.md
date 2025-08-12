@@ -85,7 +85,7 @@ Various images on the Internet of MCPSCR (Python) and MCPSCR (Qt) are available 
 
 - [Example of randomised entity model](https://www.reddit.com/r/PhoenixSC/comments/lwrhds/this_is_normal_right_i_mean_i_think_it_is_but_im/)
 
-**MCPSCR 2:**
+**MCPSCR v2 (Qt):**
 
 - [Screenshot of the code viewer](https://media.discordapp.net/attachments/583007909902942210/1158878146494480527/image.png?ex=688dda21&is=688c88a1&hm=5f7de8d3e71bdae344347105a995c3485533d9647710ff987a10c0bc0627efd0&=&format=webp&quality=lossless)
 
