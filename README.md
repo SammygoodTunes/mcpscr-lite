@@ -5,6 +5,7 @@ A light-weight CLI version of an unreleased Minecraft source code randomiser.
 Supports only alpha (and possibly beta) versions of the game.
 
 ![Preview](https://github.com/SammygoodTunes/mcpscr-lite/blob/main/assets/ss.png?raw=true)
+![Preview](https://github.com/SammygoodTunes/mcpscr-lite/blob/main/assets/ss2.png?raw=true)
 
 > [!NOTE]
 > The MCP itself is NOT included in the repository, and therefore must be provided by the user.
