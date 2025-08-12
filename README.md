@@ -15,6 +15,8 @@ Supports only alpha (and possibly beta) versions of the game.
 - [Setup](#setup)
 - [Information](#information)
   - [Origins](#origins)
+  - [Randomisation features](#randomisation-features)
+  - [Presets](#presets)
   - [Compatibility](#compatibility)
   - [Dependencies](#dependencies)
 
@@ -87,6 +89,18 @@ Various images on the Internet of MCPSCR (Python) and MCPSCR (Qt) are available 
 - [Screenshot of the code viewer](https://media.discordapp.net/attachments/583007909902942210/1158878146494480527/image.png?ex=688dda21&is=688c88a1&hm=5f7de8d3e71bdae344347105a995c3485533d9647710ff987a10c0bc0627efd0&=&format=webp&quality=lossless)
 
 - [Screenshot of the file viewer](https://media.discordapp.net/attachments/660468731217969187/1047247800490020986/image.png?ex=688e7504&is=688d2384&hm=3b33dbe5ff906b0aeb7a767082a2cf1f4ad76a8444d2a1dec709f50a29ee955c&=&format=webp&quality=lossless)
+
+### Randomisation features
+
+- Float and double randomisation
+- Incremental/Decremental operator randomisation
+- Block randomisation [only tested on b1.7.3]
+
+### Presets
+
+- World Gen: All terrain generation and noise-related files
+- Models: All entity model files
+- All: All files
 
 ### Compatibility
 

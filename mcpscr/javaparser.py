@@ -92,6 +92,8 @@ def find_blocks(data: str, block_list: list[str]) -> list[tuple[str, tokenizer.P
                 continue
             result.append((t.value, t.position))
         return result
+    except StopIteration:
+        return result
     except tokenizer.LexerError:
         return []
 
@@ -104,6 +106,6 @@ def gather_blocks(data: str) -> list[str]:
     blocks = []
     lines = data.split('\n')
     for line in lines:
-        if line.find('setBlockName') != -1 and line.find('{') == -1:
-            blocks.append(line.split()[0])
+        if line.find('public static final Block') != -1 and line.find('[]') == -1:
+            blocks.append(line.split()[4].split(';')[0])
     return blocks
