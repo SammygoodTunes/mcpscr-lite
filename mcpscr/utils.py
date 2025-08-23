@@ -41,6 +41,7 @@ RAND_F = 'Enable float randomisation'
 RAND_I = 'Enable int randomisation'
 RAND_B = 'Enable bool randomisation'
 RAND_ICDC = 'Enable ++/-- randomisation'
+RAND_MATH = 'Enable math func randomisation'
 RAND_BL = 'Enable block randomisation'
 
 def get_mcp_sources_name(mcp_dir: str) -> str:

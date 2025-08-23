@@ -30,7 +30,8 @@ class MCPSCR:
             utils.RAND_I: False,
             utils.RAND_B: False,
             utils.RAND_ICDC: False,
-            utils.RAND_BL: True,
+            utils.RAND_MATH: True,
+            utils.RAND_BL: False,
         }
         if not utils.has_supported_system():
             raise Exception(f'System [{utils.OS_SYS}] not supported.')
@@ -198,6 +199,9 @@ class MCPSCR:
                     changes += c
                 if self.settings[utils.RAND_ICDC]:
                     l, c = randomiser.randomise_incdec(l, javaparser.find_incdec(l), self.probability)
+                    changes += c
+                if self.settings[utils.RAND_MATH]:
+                    l, c = randomiser.randomise_math(l, javaparser.find_math(l), self.probability)
                     changes += c
                 if self.settings[utils.RAND_BL]:
                     l, c = randomiser.randomise_blocks(l, javaparser.find_blocks(l, self.blocks), self.probability, self.blocks)

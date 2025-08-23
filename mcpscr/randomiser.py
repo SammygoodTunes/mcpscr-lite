@@ -4,6 +4,7 @@ MCPSCR Randomiser
 
 from copy import copy
 from javalang.tokenizer import Position
+from mcpscr.javaparser import MATH_FUNCS
 from random import randint, uniform, choice
 
 
@@ -110,21 +111,6 @@ def randomise_ints(
     )
 
 
-def randomise_incdec(line: str, operators: list[tuple[str, Position]], p: int) -> tuple[str, int]:
-    """
-    Randomise increments/decrements
-    :param line: Line of code
-    :param operators: Float values and positions
-    :param p: Probability of success (0-100)
-    :return:
-    """
-    def f(a, _, c):
-        if randint(0, 100) > 100 - a:
-            return ['++', '--'][(['++', '--'].index(c[0]) + 1) % 2], True
-        return c[0], False
-    return randomise_core(line, operators, p, None, f)
-
-
 def randomise_bool(line: str, bools: list[tuple[str, Position]], p: int) -> tuple[str, int]:
     """
     Randomise booleans
@@ -138,6 +124,38 @@ def randomise_bool(line: str, bools: list[tuple[str, Position]], p: int) -> tupl
             return ['true', 'false'][(['true', 'false'].index(c[0]) + 1) % 2], True
         return c[0], False
     return randomise_core(line, bools, p, None, f)
+
+
+def randomise_incdec(line: str, operators: list[tuple[str, Position]], p: int) -> tuple[str, int]:
+    """
+    Randomise increments/decrements
+    :param line: Line of code
+    :param operators: Operator values and positions
+    :param p: Probability of success (0-100)
+    :return:
+    """
+    def f(a, _, c):
+        if randint(0, 100) > 100 - a:
+            return ['++', '--'][(['++', '--'].index(c[0]) + 1) % 2], True
+        return c[0], False
+    return randomise_core(line, operators, p, None, f)
+
+
+def randomise_math(line: str, funcs: list[tuple[str, Position]], p: int) -> tuple[str, int]:
+    """
+    Randomise math functions
+    :param line: Line of code
+    :param funcs: Math function values and positions
+    :param p: Probability of success (0-100)
+    :return:
+    """
+    def f(a, _, c):
+        if randint(0, 100) > 100 - a:
+            math_funcs = MATH_FUNCS.copy()
+            math_funcs.remove(c[0])
+            return choice(math_funcs), True
+        return c[0], False
+    return randomise_core(line, funcs, p, None, f)
 
 
 def randomise_blocks(
