@@ -8,6 +8,7 @@ from glob import glob
 from os import path
 from shutil import copytree, rmtree
 from random import seed
+from json import dumps
 
 from mcpscr.utils import RAND_D
 
@@ -162,7 +163,13 @@ class MCPSCR:
         :param token:
         :return:
         """
-        logger.info(f'Randomising with seed [{self.seed}] and range [{self.range}]')
+        logger.info(f'Randomising with:'
+                    f'\n{"=" * 16}'
+                    f'\nSeed [{self.seed}]'
+                    f'\nRange [{self.range}]'
+                    f'\n{self.probability}% randomisation chance'
+                    f'\nSettings: {dumps(self.settings, indent=4)}'
+                    f'\n{"=" * 16}')
         seed(self.seed)
         if isinstance(token, list):
             files = [

@@ -125,6 +125,7 @@ def find_blocks(data: str, block_list: list[str]) -> list[tuple[str, tokenizer.P
     result = []
     try:
         for token in tokens:
+            # TODO: How do we allow randomisation for these excluded cases? (Patches?)
             if data.find('getFlowVector') != -1 or data.find('tryToCreatePortal') != -1:
                 continue
             if data.find('func_31035_a') != -1 or data.find('setGraphicsLevel') != -1:
@@ -133,7 +134,7 @@ def find_blocks(data: str, block_list: list[str]) -> list[tuple[str, tokenizer.P
                 continue
             if data.find('fertilize') != -1 or data.find('ejectRecord') != -1:
                 continue
-            if data.find('growTree') != -1:
+            if data.find('growTree') != -1 or data.find('this != Block.stairSingle') != -1:
                 continue
             if token.value != 'Block' or tokens.__next__().value != '.' or data.find('canBlockCatchFire') != -1:
                 continue
