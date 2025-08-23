@@ -36,6 +36,13 @@ MCP_CHECK_PYTHON = f'python2.7 -V 1>/dev/null 2>/dev/null' if OS_SYS == 'linux' 
 
 MAX_SEED_LEN = 16
 
+RAND_D = 'Enable double randomisation'
+RAND_F = 'Enable float randomisation'
+RAND_I = 'Enable int randomisation'
+RAND_B = 'Enable bool randomisation'
+RAND_ICDC = 'Enable ++/-- randomisation'
+RAND_BL = 'Enable block randomisation'
+
 def get_mcp_sources_name(mcp_dir: str) -> str:
     """
     Get the correct MCP sources folder name

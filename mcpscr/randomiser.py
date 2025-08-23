@@ -160,4 +160,7 @@ def randomise_blocks(
             temp.remove(c[0])
             return choice(block_list), True
         return c[0], False
+    # Patches
+    if line.find('(BlockFlower)Block.blocksList') != -1:
+        line = line.replace('(BlockFlower)', '')
     return randomise_core(line, blocks, p, None, f)

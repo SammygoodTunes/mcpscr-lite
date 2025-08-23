@@ -9,6 +9,8 @@ from os import path
 from shutil import copytree, rmtree
 from random import seed
 
+from mcpscr.utils import RAND_D
+
 
 class MCPSCR:
     """
@@ -21,6 +23,14 @@ class MCPSCR:
         self.range = (0.0, 20.0)
         self.seed = ''
         self.blocks = []
+        self.settings = {
+            utils.RAND_D: False,
+            utils.RAND_F: False,
+            utils.RAND_I: False,
+            utils.RAND_B: False,
+            utils.RAND_ICDC: False,
+            utils.RAND_BL: True,
+        }
         if not utils.has_supported_system():
             raise Exception(f'System [{utils.OS_SYS}] not supported.')
         if not utils.has_mcp(self.mcp_dir):
@@ -60,10 +70,12 @@ class MCPSCR:
         while running:
             option = input(
                 '[R] Randomise\n[S] Start game\n[T] Start server'
-                '\n[U] Update\n[X] Quick reset\n[C] Clean up \n[E] Exit\n>> '
+                '\n[U] Update\n[X] Quick reset\n[C] Clean up \n[O] Options\n[E] Exit\n>> '
             ).lower()
             if option == 'e':
                 running = False
+            elif option == 'o':
+                self.options_menu()
             elif option == 'r':
                 self.randomiser_menu()
             elif option == 'x':
@@ -79,6 +91,18 @@ class MCPSCR:
                 self.run_server()
             elif option == 'u':
                 self.update()
+
+    def options_menu(self) -> None:
+        """
+        Show MCPSCR options menu
+        :return:
+        """
+        for key in self.settings.keys():
+            state = input(f'{key}? [y/n] (currently {self.settings[key]}) ').lower().strip()
+            if not state or state not in 'yn':
+                continue
+            self.settings[key] = True if state == 'y' else False
+
 
     def randomiser_menu(self) -> None:
         """
@@ -152,18 +176,25 @@ class MCPSCR:
             with open(file) as f:
                 data_lines = f.readlines()
             for i, line in enumerate(data_lines):
-                l, c = randomiser.randomise_doubles(line, javaparser.find_doubles(line), self.probability, self.range)
-                changes += c
-                l, c = randomiser.randomise_floats(l, javaparser.find_floats(l), self.probability, self.range)
-                changes += c
-                l, c = randomiser.randomise_blocks(l, javaparser.find_blocks(l, self.blocks), self.probability, self.blocks)
-                changes += c
-                l, c = randomiser.randomise_ints(l, javaparser.find_ints(l), self.probability, self.range)
-                changes += c
-                #l, c = randomiser.randomise_bool(l, javaparser.find_bools(l), self.probability)
-                #changes += c
-                #l, c = randomiser.randomise_incdec(l, javaparser.find_incdec(l), prob)
-                #changes += c
+                l = line
+                if self.settings[utils.RAND_D]:
+                    l, c = randomiser.randomise_doubles(line, javaparser.find_doubles(l), self.probability, self.range)
+                    changes += c
+                if self.settings[utils.RAND_F]:
+                    l, c = randomiser.randomise_floats(l, javaparser.find_floats(l), self.probability, self.range)
+                    changes += c
+                if self.settings[utils.RAND_I]:
+                    l, c = randomiser.randomise_ints(l, javaparser.find_ints(l), self.probability, self.range)
+                    changes += c
+                if self.settings[utils.RAND_B]:
+                    l, c = randomiser.randomise_bool(l, javaparser.find_bools(l), self.probability)
+                    changes += c
+                if self.settings[utils.RAND_ICDC]:
+                    l, c = randomiser.randomise_incdec(l, javaparser.find_incdec(l), self.probability)
+                    changes += c
+                if self.settings[utils.RAND_BL]:
+                    l, c = randomiser.randomise_blocks(l, javaparser.find_blocks(l, self.blocks), self.probability, self.blocks)
+                    changes += c
                 data_lines[i] = l
             with open(file, 'w') as f:
                 f.writelines(data_lines)

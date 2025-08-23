@@ -70,6 +70,8 @@ def find_ints(data: str) -> list[tuple[str, tokenizer.Position]]:
             if data.find("nextInt") == -1:
                 return []
             if token.value.isdigit() or (token.value.startswith('-') and token.value[1:].isdigit()):
+                if tokens.__next__().value in ['+', '-', '*', '/']:
+                    continue
                 result.append((token.value, token.position))
         return result
     except tokenizer.LexerError:
@@ -124,6 +126,14 @@ def find_blocks(data: str, block_list: list[str]) -> list[tuple[str, tokenizer.P
     try:
         for token in tokens:
             if data.find('getFlowVector') != -1 or data.find('tryToCreatePortal') != -1:
+                continue
+            if data.find('func_31035_a') != -1 or data.find('setGraphicsLevel') != -1:
+                continue
+            if data.find('func_31052_a_') != -1 or data.find('func_31051_a') != -1:
+                continue
+            if data.find('fertilize') != -1 or data.find('ejectRecord') != -1:
+                continue
+            if data.find('growTree') != -1:
                 continue
             if token.value != 'Block' or tokens.__next__().value != '.' or data.find('canBlockCatchFire') != -1:
                 continue
