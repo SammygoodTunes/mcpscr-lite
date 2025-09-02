@@ -4,7 +4,7 @@ MCPSCR Randomiser
 
 from copy import copy
 from javalang.tokenizer import Position
-from mcpscr.javaparser import MATH_FUNCS
+from mcpscr.javaparser import MATH_FUNCS, MATH_HELPER_FUNCS
 from random import randint, uniform, choice
 
 
@@ -141,7 +141,7 @@ def randomise_incdec(line: str, operators: list[tuple[str, Position]], p: int) -
     return randomise_core(line, operators, p, None, f)
 
 
-def randomise_math(line: str, funcs: list[tuple[str, Position]], p: int) -> tuple[str, int]:
+def randomise_math(line: str, funcs: list[tuple[str, Position]], p: int, math_helper: bool = False) -> tuple[str, int]:
     """
     Randomise math functions
     :param line: Line of code
@@ -151,7 +151,7 @@ def randomise_math(line: str, funcs: list[tuple[str, Position]], p: int) -> tupl
     """
     def f(a, _, c):
         if randint(0, 100) > 100 - a:
-            math_funcs = MATH_FUNCS.copy()
+            math_funcs = MATH_HELPER_FUNCS.copy() if math_helper else MATH_FUNCS.copy()
             math_funcs.remove(c[0])
             return choice(math_funcs), True
         return c[0], False

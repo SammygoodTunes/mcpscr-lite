@@ -6,7 +6,8 @@ from javalang import tokenizer
 
 
 OPERATORS = ['+', '-', '*', '/']
-MATH_FUNCS = ['sin', 'cos', 'sqrt_float', 'abs']
+MATH_FUNCS = ['sin', 'sinh', 'cos', 'cosh']
+MATH_HELPER_FUNCS = ['sin', 'cos', 'sqrt_float', 'abs']
 
 
 def find_doubles(data: str) -> list[tuple[str, tokenizer.Position]]:
@@ -118,22 +119,25 @@ def find_bools(data: str) -> list[tuple[str, tokenizer.Position]]:
         return []
 
 
-def find_math(data: str) -> list[tuple[str, tokenizer.Position]]:
+def find_math(data: str, math_helper: bool = False) -> list[tuple[str, tokenizer.Position]]:
     """
-    Find all MathHelper functions in a data buffer and return a list of tuple results
+    Find all Math/MathHelper functions in a data buffer and return a list of tuple results
     :param data:
+    :param math_helper:
     :return:
     """
     tokens = tokenizer.tokenize(data)
     result = []
+    value = 'MathHelper' if math_helper else 'Math'
+    funcs = MATH_HELPER_FUNCS if math_helper else MATH_FUNCS
     try:
         for token in tokens:
-            if token.value != 'MathHelper':
+            if token.value != value:
                 continue
             if tokens.__next__().value != '.':
                 continue
             t = tokens.__next__()
-            if not t.value in MATH_FUNCS:
+            if not t.value in funcs:
                 continue
             result.append((t.value, t.position))
         return result

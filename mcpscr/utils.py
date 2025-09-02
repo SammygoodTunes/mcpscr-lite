@@ -44,6 +44,16 @@ RAND_ICDC = 'Enable ++/-- randomisation'
 RAND_MATH = 'Enable math func randomisation'
 RAND_BL = 'Enable block randomisation'
 
+EXCLUDE_FOR_MATH = ['TextureCompassFX']
+
+def get_fname(file_path: str) -> str:
+    """
+    Get the file name (without extension) in a path
+    :param path:
+    :return:
+    """
+    return path.splitext(path.basename(file_path))[0]
+
 def get_mcp_sources_name(mcp_dir: str) -> str:
     """
     Get the correct MCP sources folder name

@@ -10,8 +10,6 @@ from shutil import copytree, rmtree
 from random import seed
 from json import dumps
 
-from mcpscr.utils import RAND_D
-
 
 class MCPSCR:
     """
@@ -25,12 +23,12 @@ class MCPSCR:
         self.seed = ''
         self.blocks = []
         self.settings = {
-            utils.RAND_D: False,
-            utils.RAND_F: False,
+            utils.RAND_D: True,
+            utils.RAND_F: True,
             utils.RAND_I: False,
             utils.RAND_B: False,
             utils.RAND_ICDC: False,
-            utils.RAND_MATH: True,
+            utils.RAND_MATH: False,
             utils.RAND_BL: False,
         }
         if not utils.has_supported_system():
@@ -120,7 +118,7 @@ class MCPSCR:
         else:
             logger.error('Invalid source type!')
             return
-        randomiser_option = input('Randomise: [W] World Gen / [M] Models / [E] Entity / [A] All: ').lower()
+        randomiser_option = input('Randomise: [W] World Gen / [M] Models / [E] Entity / [P] Player / [A] All: ').lower()
         self.seed = input('Seed (leave blank for random): ')
         if not self.seed.strip():
             self.seed = utils.random_seed(utils.MAX_SEED_LEN)
@@ -154,6 +152,10 @@ class MCPSCR:
         elif randomiser_option == 'e':
             logger.info('Randomising from Entity files')
             self.randomise(f'{sources_dir}/{source_type}/**/Entity*.java')
+            return
+        elif randomiser_option == 'p':
+            logger.info('Randomising from Player files')
+            self.randomise(f'{sources_dir}/{source_type}/**/*Player*.java')
             return
         logger.error('Invalid option!')
 
@@ -197,11 +199,13 @@ class MCPSCR:
                 if self.settings[utils.RAND_B]:
                     l, c = randomiser.randomise_bool(l, javaparser.find_bools(l), self.probability)
                     changes += c
-                if self.settings[utils.RAND_ICDC]:
+                if self.settings[utils.RAND_ICDC] and utils.get_fname(file) not in utils.EXCLUDE_FOR_MATH:
                     l, c = randomiser.randomise_incdec(l, javaparser.find_incdec(l), self.probability)
                     changes += c
                 if self.settings[utils.RAND_MATH]:
                     l, c = randomiser.randomise_math(l, javaparser.find_math(l), self.probability)
+                    changes += c
+                    l, c = randomiser.randomise_math(l, javaparser.find_math(l, True), self.probability, True)
                     changes += c
                 if self.settings[utils.RAND_BL]:
                     l, c = randomiser.randomise_blocks(l, javaparser.find_blocks(l, self.blocks), self.probability, self.blocks)
