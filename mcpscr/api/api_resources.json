@@ -1,0 +1,13 @@
+{
+  "server": {
+    "vars": {
+      "WORLD_DUNGEON_COUNT_PER_CHUNK": {
+        "type": "int",
+        "value": 8,
+        "target": "ChunkProviderGenerate:populate",
+        "target-type": "method",
+        "index-path": [11, 2, 0, 2]
+      }
+    }
+  }
+}

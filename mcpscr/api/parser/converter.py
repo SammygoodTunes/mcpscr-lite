@@ -1,23 +1,28 @@
-
-from glob import glob
-from pprint import pprint
+from pathlib import Path
 from typing import Any, cast
 
-from mcpscr.parser.parser import INDENT, JavaStatementIfElse, JavaOperator, JavaCondition, JavaConditionType, \
-    JavaLoopFor, JavaAttribute, JavaLoopWhile, JavaLoopDoWhile, JavaStatementTryCatch, JavaParam, JavaInstructionLabel, \
-    JavaStatementSwitchCase, JavaStatementSynchronized
-from mcpscr.parser.parser import JavaClass
-from mcpscr.parser.parser import JavaInstruction
-from mcpscr.parser.parser import JavaInstructionType
-from mcpscr.parser.parser import JavaKeyword
-from mcpscr.parser.parser import JavaLoop
-from mcpscr.parser.parser import JavaLoopType
-from mcpscr.parser.parser import JavaMethod
-from mcpscr.parser.parser import JavaModifier
-from mcpscr.parser.parser import JavaSeparator
-from mcpscr.parser.parser import JavaStatement
-from mcpscr.parser.parser import JavaStatementType
-from mcpscr.parser.parser import Parser
+from mcpscr.api.parser.parser import INDENT
+from mcpscr.api.parser.parser import JavaAttribute
+from mcpscr.api.parser.parser import JavaClass
+from mcpscr.api.parser.parser import JavaCondition
+from mcpscr.api.parser.parser import JavaConditionType
+from mcpscr.api.parser.parser import JavaInstruction
+from mcpscr.api.parser.parser import JavaInstructionLabel
+from mcpscr.api.parser.parser import JavaKeyword
+from mcpscr.api.parser.parser import JavaLoop
+from mcpscr.api.parser.parser import JavaLoopDoWhile
+from mcpscr.api.parser.parser import JavaLoopFor
+from mcpscr.api.parser.parser import JavaLoopWhile
+from mcpscr.api.parser.parser import JavaMethod
+from mcpscr.api.parser.parser import JavaModifier
+from mcpscr.api.parser.parser import JavaOperator
+from mcpscr.api.parser.parser import JavaParam
+from mcpscr.api.parser.parser import JavaStatement
+from mcpscr.api.parser.parser import JavaStatementIfElse
+from mcpscr.api.parser.parser import JavaStatementSwitchCase
+from mcpscr.api.parser.parser import JavaStatementSynchronized
+from mcpscr.api.parser.parser import JavaStatementTryCatch
+
 
 class Converter:
     """
@@ -28,18 +33,28 @@ class Converter:
         self.depth = 0
 
     def indent(self, s: str) -> str:
+        """
+        Auto-indent string
+        :return: str
+        """
         return ' ' * self.depth * INDENT + s
 
     def wi(self, f: Any, s: str) -> None:
+        """ Write to file with indentation """
         f.write(self.indent(s))
 
     @staticmethod
     def get_modifier(o: JavaClass | JavaMethod | JavaAttribute) -> str:
+        """
+        Return the modifier of a JavaClass, JavaMethod or JavaAttribute data class
+        :param o:
+        :return:
+        """
         modifier = o.modifier + ' ' if o.modifier else ''
         if o.static: modifier += JavaModifier.STATIC.value + ' '
-        if o.final: modifier +=  JavaModifier.FINAL.value + ' '
+        if o.final: modifier += JavaModifier.FINAL.value + ' '
         if o.__class__ != JavaAttribute:
-            if o.abstract: modifier +=  JavaModifier.ABSTRACT.value + ' '
+            if o.abstract: modifier += JavaModifier.ABSTRACT.value + ' '
         return modifier
 
     @staticmethod
@@ -62,7 +77,7 @@ class Converter:
     def get_parameters(param: list[JavaParam]) -> str:
         params_str = ''
         for i, a in enumerate(param):
-            params_str += f'{a.type} {a.name}{'[]' * a.array_dim if a.is_array else ''}{f", " if i != len(param) - 1 else ""}'
+            params_str += f'''{a.type} {a.name}{'[]' * a.array_dim if a.is_array else ''}{f", " if i != len(param) - 1 else ""}'''
         return params_str
 
     @staticmethod
@@ -119,7 +134,7 @@ class Converter:
                         body_str += self.get_body(cast(JavaStatementIfElse, instr).elseif_body[j])
                     body_str += self.indent('} ')
                 if cast(JavaStatementIfElse, instr).else_body:
-                    body_str +=f'{JavaKeyword.ELSE.value} {{\n'
+                    body_str += f'{JavaKeyword.ELSE.value} {{\n'
                     else_body = self.get_body(cast(JavaStatementIfElse, instr).else_body)
                     body_str += else_body
                     body_str += self.indent('}')
@@ -213,7 +228,7 @@ class Converter:
         self.depth -= 1
         return body_str
 
-    def write_from(self, java_class: JavaClass, path: str='') -> None:
+    def write_from(self, java_class: JavaClass, path: Path = Path()) -> None:
         """
         Write JavaClass data object to Java file
         :param java_class: JavaClass data object
@@ -225,16 +240,17 @@ class Converter:
         extends: str
 
         if not path:
-            path = f'{java_class.name}'
+            path = Path(java_class.name + '.java')
+
         if not path:
-            path = java_class.file_name.split('.')[0]
+            path = Path(java_class.file_name)
 
-        if path.__contains__('.java'):
-            path = path.removesuffix('.java')
+        if path.suffix != '.java':
+            path = Path(str(path) + '.java')
 
-        with open(f'{path}.java', 'w') as f:
+        with open(path, 'w') as f:
             # Package
-            self.wi(f, f'{JavaKeyword.PACKAGE.value} {java_class.package};\n\n')
+            self.wi(f, f'{JavaKeyword.PACKAGE.value} {java_class.package_name};\n\n')
             # Imports
             for i in java_class.imports:
                 f.write(f'{JavaKeyword.IMPORT.value} {i};\n')
@@ -246,15 +262,16 @@ class Converter:
             implements = self.get_implements(java_class)
             if implements and extends: extends += ' '
             if java_class.interface:
-                type = JavaKeyword.INTERFACE.value
+                type_ = JavaKeyword.INTERFACE.value
             elif java_class.enum:
-                type = JavaKeyword.ENUM.value
+                type_ = JavaKeyword.ENUM.value
             else:
-                type = JavaKeyword.CLASS.value
-            self.wi(f, f'{modifier}{type} {java_class.name} {extends}{implements}\n{{\n')
+                type_ = JavaKeyword.CLASS.value
+            self.wi(f, f'{modifier}{type_} {java_class.name} {extends}{implements}\n{{\n')
             self.depth += 1
             for i, enum in enumerate(java_class.enums):
-                self.wi(f, f'{enum.name}({enum.value}){';\n\n' if i == len(java_class.enums) - 1 else ','}\n')
+                end = ';\n\n' if i == len(java_class.enums) - 1 else ','
+                self.wi(f, f'''{enum.name}({enum.value}){end}\n''')
             for constructor in java_class.constructors:
                 modifier = self.get_modifier(constructor)
                 params = self.get_parameters(constructor.parameters)
@@ -297,4 +314,3 @@ class Converter:
             f.write(instance_blocks)
             self.depth -= 1
             f.write('}')
-

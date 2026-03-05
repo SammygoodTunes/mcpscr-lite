@@ -2,7 +2,7 @@
 
 A light-weight CLI version of an unreleased Minecraft source code randomiser.
 
-Aims to support only beta (and hopefully alpha) versions of the game.
+Aims to fully support the Beta 1.7.3 version
 
 ![Preview](https://github.com/SammygoodTunes/mcpscr-lite/blob/main/assets/ss.png?raw=true)
 ![Preview](https://github.com/SammygoodTunes/mcpscr-lite/blob/main/assets/ss2.png?raw=true)
@@ -17,7 +17,6 @@ Aims to support only beta (and hopefully alpha) versions of the game.
 - [Information](#information)
   - [Origins](#origins)
   - [Randomisation features](#randomisation-features)
-  - [Presets](#presets)
   - [Compatibility](#compatibility)
   - [Dependencies](#dependencies)
 
@@ -76,10 +75,10 @@ and went through several phases. Originally, it used to randomise single `.java`
 implemented; this allowed for randomising the entirety of the game's source code.
 In late 2022, the MCPSCR was re-vamped: it was GUI-based (Qt) and used regex patterns to find specific tokens in Java code.
 Additionally, it supported the newest version of the game (from 1.16 to 1.20 at the time).
-This particular light-weight version however takes a step back to re-visit the older Alpha and Beta versions of Minecraft. 
-So, it is only designed to support the MCP dedicated to those versions.
+This particular light-weight version however takes a step back to re-visit the older Beta 1.7.3 version of Minecraft. 
+So, it is only designed to support the MCP dedicated to that version. Though, other similar versions *may* work.
 
-Various images on the Internet of MCPSCR (Python) and MCPSCR (Qt) are available for viewing below:
+Various images on the Internet of MCPSCR (Python) and MCPSCR (Qt) are available for viewing below (sort of):
 
 **MCPSCR (Python):**
 
@@ -87,9 +86,11 @@ Various images on the Internet of MCPSCR (Python) and MCPSCR (Qt) are available 
 
 **MCPSCR v2 (Qt):**
 
-- [Screenshot of the code viewer](https://media.discordapp.net/attachments/583007909902942210/1158878146494480527/image.png?ex=688dda21&is=688c88a1&hm=5f7de8d3e71bdae344347105a995c3485533d9647710ff987a10c0bc0627efd0&=&format=webp&quality=lossless)
+- TODO
 
-- [Screenshot of the file viewer](https://media.discordapp.net/attachments/660468731217969187/1047247800490020986/image.png?ex=688e7504&is=688d2384&hm=3b33dbe5ff906b0aeb7a767082a2cf1f4ad76a8444d2a1dec709f50a29ee955c&=&format=webp&quality=lossless)
+<!--- [Screenshot of the code viewer](https://media.discordapp.net/attachments/583007909902942210/1158878146494480527/image.png?ex=688dda21&is=688c88a1&hm=5f7de8d3e71bdae344347105a995c3485533d9647710ff987a10c0bc0627efd0&=&format=webp&quality=lossless)
+
+- [Screenshot of the file viewer](https://media.discordapp.net/attachments/660468731217969187/1047247800490020986/image.png?ex=688e7504&is=688d2384&hm=3b33dbe5ff906b0aeb7a767082a2cf1f4ad76a8444d2a1dec709f50a29ee955c&=&format=webp&quality=lossless) -->
 
 ### Randomisation features
 
@@ -99,15 +100,24 @@ Various images on the Internet of MCPSCR (Python) and MCPSCR (Qt) are available 
 - `bool` randomisation
 - `++`/`--` randomisation
 - `Math`/`MathHelper` randomisation
-- `Block` randomisation [only tested on b1.7.3]
+- `Block` randomisation
 
-### Presets
+> [!WARNING]  
+> These features are completely ignored when using [presets](#presets).
+
+### File categories
 
 - `World Gen` — All terrain generation and noise-related files
 - `Models` — All entity model files
 - `Entity` — All entity handler files
 - `Player` — All player files
 - `All` — All files
+
+### Presets
+
+Presets are JSON files containing specific randomisation instructions for the MCPSCR, allowing anyone to customise
+whichever part of the game they want. An in-depth document about presets is found 
+[here](https://github.com/SammygoodTunes/mcpscr-lite/blob/main/presets.md).
 
 ### Compatibility
 
@@ -127,4 +137,4 @@ then the game may or may not work as intended.
 
 
 
-> [Go back to the top](#mcpscr-lite)
+> [Back to top](#mcpscr-lite)

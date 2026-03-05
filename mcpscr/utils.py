@@ -46,10 +46,10 @@ RAND_BL = 'Enable block randomisation'
 
 EXCLUDE_FOR_MATH = ['TextureCompassFX']
 
-def get_fname(file_path: str) -> str:
+def get_file_name(file_path: str) -> str:
     """
     Get the file name (without extension) in a path
-    :param path:
+    :param file_path:
     :return:
     """
     return path.splitext(path.basename(file_path))[0]
@@ -69,7 +69,6 @@ def has_supported_system() -> bool:
     """
     return OS_SYS in ['windows', 'linux']
 
-
 def has_mcp(mcp_dir: str) -> bool:
     """
     Return whether MCP folder exists
@@ -77,7 +76,6 @@ def has_mcp(mcp_dir: str) -> bool:
     :return: bool
     """
     return path.exists(mcp_dir)
-
 
 def has_mcp_sources(mcp_dir: str) -> bool:
     """
@@ -99,7 +97,6 @@ def has_mcp_backup_sources(mcp_dir: str) -> bool:
     backup_sources_dir_exists = path.exists(path.join(mcp_dir, 'backup'))
     backup_sources_exist = len(glob(path.join(mcp_dir, 'backup/**/*.java'), recursive=True)) > 0
     return backup_sources_dir_exists and backup_sources_exist
-
 
 def run_mcp_script(mcp_dir: str, command: str) -> bool:
     """
@@ -147,7 +144,6 @@ def mcp_setup(mcp_dir: str) -> bool:
         return True
     return run_mcp_script(mcp_dir, MCP_SETUP_CMD)
 
-
 def mcp_decompile(mcp_dir: str) -> bool:
     """
     Run decompilation, return True if successful
@@ -155,7 +151,6 @@ def mcp_decompile(mcp_dir: str) -> bool:
     :return:
     """
     return run_mcp_script(mcp_dir, MCP_DECOMP_CMD)
-
 
 def mcp_recompile(mcp_dir: str) -> bool:
     """
@@ -165,7 +160,6 @@ def mcp_recompile(mcp_dir: str) -> bool:
     """
     return run_mcp_script(mcp_dir, MCP_RECOMP_CMD)
 
-
 def mcp_start_client(mcp_dir: str) -> bool:
     """
     Run client, return True if successful
@@ -173,7 +167,6 @@ def mcp_start_client(mcp_dir: str) -> bool:
     :return:
     """
     return run_mcp_script(mcp_dir, MCP_STCL_CMD if has_mcp_script(mcp_dir, MCP_STCL_CMD) else MCP_STCL_CMD2)
-
 
 def mcp_start_server(mcp_dir: str) -> bool:
     """

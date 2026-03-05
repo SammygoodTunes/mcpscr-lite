@@ -3,12 +3,14 @@ MCPSCR Core
 """
 
 from mcpscr import utils, javaparser, randomiser
+from mcpscr.api.construct import APIConstructor, InstanceType
+from mcpscr.generator import Generator
 from mcpscr.logger import logger
 from glob import glob
 from os import path
 from shutil import copytree, rmtree
 from random import seed
-from json import dumps
+from json import dumps, loads
 
 
 class MCPSCR:
@@ -18,6 +20,7 @@ class MCPSCR:
 
     def __init__(self, mcp_dir):
         self.mcp_dir = mcp_dir
+        self.api = APIConstructor(mcp_dir)
         self.probability = 0
         self.range = (0.0, 20.0)
         self.seed = ''
@@ -31,6 +34,7 @@ class MCPSCR:
             utils.RAND_MATH: False,
             utils.RAND_BL: False,
         }
+        self.presets: list[tuple[str, str, str]] = []
         if not utils.has_supported_system():
             raise Exception(f'System [{utils.OS_SYS}] not supported.')
         if not utils.has_mcp(self.mcp_dir):
@@ -59,6 +63,14 @@ class MCPSCR:
                 )
         with open(glob(path.join(self.mcp_dir, 'backup', '**/Block.java'), recursive=True)[0]) as blocks_file:
             self.blocks = javaparser.gather_blocks(blocks_file.read())
+        logger.info('Reading presets')
+        for preset in glob('presets/**/*.json', recursive=True):
+            try:
+                data = loads(open(preset).read())
+                self.presets.append((preset, data['name'], data['description']))
+            except Exception as e:
+                logger.error(f'Failed to load preset file {preset}!')
+                logger.error(f'Exception: {e}')
         logger.info('Welcome to MCPSCR-Lite!')
 
     def main_menu(self) -> None:
@@ -69,7 +81,7 @@ class MCPSCR:
         running = True
         while running:
             option = input(
-                '[R] Randomise\n[S] Start game\n[T] Start server'
+                '[R] Randomise\n[P] Preset Menu\n[S] Start game\n[T] Start server'
                 '\n[U] Update\n[X] Quick reset\n[C] Clean up \n[O] Options\n[E] Exit\n>> '
             ).lower()
             if option == 'e':
@@ -78,6 +90,8 @@ class MCPSCR:
                 self.options_menu()
             elif option == 'r':
                 self.randomiser_menu()
+            elif option == 'p':
+                self.preset_menu()
             elif option == 'x':
                 self.reset_sources()
             elif option == 'c':
@@ -141,24 +155,90 @@ class MCPSCR:
             logger.info('Randomising from all files')
             self.randomise(f'{sources_dir}/{source_type}/**/*.java')
             return
-        elif randomiser_option == 'w':
+        if randomiser_option == 'w':
             logger.info('Randomising from World Gen files')
             self.randomise(f'{sources_dir}/{source_type}/**/*Gen*.java')
             return
-        elif randomiser_option == 'm':
+        if randomiser_option == 'm':
             logger.info('Randomising from Models files')
             self.randomise(f'{sources_dir}/{source_type}/**/Model*.java')
             return
-        elif randomiser_option == 'e':
+        if randomiser_option == 'e':
             logger.info('Randomising from Entity files')
             self.randomise(f'{sources_dir}/{source_type}/**/Entity*.java')
             return
-        elif randomiser_option == 'p':
+        if randomiser_option == 'p':
             logger.info('Randomising from Player files')
             self.randomise(f'{sources_dir}/{source_type}/**/*Player*.java')
             return
         logger.error('Invalid option!')
 
+    def preset_menu(self) -> None:
+        """
+        Choose a preset
+        :return:
+        """
+        print(f'{"=" * 16}PRESETS{"=" * 16}')
+        for i, p in enumerate(self.presets):
+            print(f'{i + 1} -> {p[1]}: {p[2]}')
+        print('INFO: Presets don\'t use the Java tokens enabled in the Options menu')
+        preset = input('>> ')
+        try:
+            data = loads(open(self.presets[int(preset)-1][0]).read())
+            seed_ = input('Seed (leave blank for random): ')
+            if not seed_.strip():
+                seed_ = utils.random_seed(utils.MAX_SEED_LEN)
+            try:
+                probability = float(input('Probability: '))
+                if probability < 0 or probability > 100:
+                    raise ValueError
+            except ValueError:
+                logger.error('Invalid probability: Must be a decimal number between 0 and 100!')
+                return
+            try:
+                intensity = float(input('Intensity: '))
+                if intensity < 0 or intensity > 100:
+                    raise ValueError
+            except ValueError:
+                logger.error('Invalid intensity: Must be a decimal number between 0 and 100!')
+                return
+            instance_type = InstanceType.SERVER if '/server/' in self.presets[int(preset)-1][0] else InstanceType.CLIENT
+            self.preset_randomise(data, seed_, probability, intensity, instance_type)
+        except ValueError:
+            logger.error('Preset needs to be a number!')
+        except IndexError:
+            logger.error('Preset does not exist!')
+        except Exception as e:
+            logger.error(f'Failed to open preset: {e}')
+
+    def preset_randomise(self,
+                         preset_data: dict,
+                         seed_: str,
+                         probability: float,
+                         intensity: float,
+                         instance_type: InstanceType) -> None:
+        """
+        Randomise from a defined preset
+        :param preset_data:
+        :param seed_:
+        :param probability:
+        :param intensity:
+        :param instance_type:
+        """
+        logger.info(f'Randomising from preset {preset_data["name"]}:'
+                    f'\n{"=" * 16}'
+                    f'\nSeed [{seed_}]'
+                    f'\n{self.probability}% randomisation chance'
+                    f'\n{"=" * 16}')
+        Generator.set_seed(seed_)
+        self.reset_sources()
+        self.api.construct(instance_type)
+        self.api.randomise_from_preset(instance_type, preset_data, probability, intensity)
+        if Generator.changes:
+            logger.info(f'{Generator.changes} change(s) made!')
+            self.update()
+            return
+        logger.info('No changes made, aborting update!')
 
     def randomise(self, token: str | list[str]) -> None:
         """
@@ -199,7 +279,7 @@ class MCPSCR:
                 if self.settings[utils.RAND_B]:
                     l, c = randomiser.randomise_bool(l, javaparser.find_bools(l), self.probability)
                     changes += c
-                if self.settings[utils.RAND_ICDC] and utils.get_fname(file) not in utils.EXCLUDE_FOR_MATH:
+                if self.settings[utils.RAND_ICDC] and utils.get_file_name(file) not in utils.EXCLUDE_FOR_MATH:
                     l, c = randomiser.randomise_incdec(l, javaparser.find_incdec(l), self.probability)
                     changes += c
                 if self.settings[utils.RAND_MATH]:
@@ -239,7 +319,7 @@ class MCPSCR:
 
     def cleanup(self) -> None:
         """
-        Cleanup and decompile to fresh source code
+        Clean up and decompile to fresh source code
         :return:
         """
         if not utils.mcp_cleanup(self.mcp_dir):

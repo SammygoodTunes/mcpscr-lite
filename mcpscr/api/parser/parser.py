@@ -4,11 +4,12 @@ Parser
 
 from typing import Any
 import javalang
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from os.path import basename
 
 INDENT = 4
+
 
 class JavaKeyword(Enum):
     """ Java keywords """
@@ -130,9 +131,9 @@ class JavaStatementType(Enum):
 
 class JavaLoopType(Enum):
     """ Java statement type """
-    FOR = 1
-    WHILE = 2
-    DO_WHILE = 3
+    FOR = 0
+    WHILE = 1
+    DO_WHILE = 2
 
 class JavaConditionType(Enum):
     """ Java condition type """
@@ -143,42 +144,76 @@ class JavaConditionType(Enum):
 @dataclass
 class JavaAttribute:
     """ Java attribute """
-    modifier: JavaModifier | None
-    static: bool | None
-    final: bool | None
-    type: str
-    name: str
-    value: str | None
-    is_array: bool
-    array_dim: int | None
+    modifier: str = ''
+    static: bool = False
+    final: bool = False
+    type: str = ''
+    name: str = ''
+    value: str = ''
+    is_array: bool = False
+    array_dim: int = 0
 
 @dataclass
 class EnumEntry:
     """ Java enum entry """
-    name: str | None
-    value: str | None
+    name: str = ''
+    value: str = ''
 
 @dataclass
 class JavaParam:
     """ Java parameter """
-    name: str
-    type: str
-    is_array: bool
-    array_dim: int | None
+    name: str = ''
+    type: str = ''
+    is_array: bool = False
+    array_dim: int | None = None
+
+    def __getitem__(self, item):
+        if item == 0:
+            return self.name
+        if item == 1:
+            return self.type
+        if item == 2:
+            return self.is_array
+        if item == 3:
+            return self.array_dim
+        raise IndexError
 
 @dataclass
 class JavaInstruction:
     """ Java instruction """
     type: JavaInstructionType
-    code: str
+    code: str = ''
 
 @dataclass
 class JavaCondition:
     """ Java condition """
-    lop: JavaAttribute | str | None
-    op: JavaOperator | str | None
-    rop: JavaAttribute | str | None
-    depth: int
+    lop: JavaAttribute | str = ''
+    op: JavaOperator | str = ''
+    rop: JavaAttribute | str = ''
+    depth: int = 0
+
+    def __getitem__(self, item):
+        if item == 0:
+            return self.lop
+        if item == 1:
+            return self.op
+        if item == 2:
+            return self.rop
+        if item == 3:
+            return self.depth
+        raise IndexError(f'Item {item} does not exist')
+
+    def __setitem__(self, key, value):
+        if key == 0:
+            self.lop = value
+        elif key == 1:
+            self.op = value
+        elif key == 2:
+            self.rop = value
+        elif key == 3:
+            self.depth = value
+        else:
+            raise IndexError(f'Key {key} does not exist')
 
 @dataclass
 class JavaStatement:
@@ -193,78 +228,107 @@ class JavaLoop:
 @dataclass
 class JavaCase:
     """ Java switch case """
-    value: str
-    body: list[JavaInstruction | JavaStatement | JavaLoop]
+    value: str = ''
+    body: list[JavaInstruction | JavaStatement | JavaLoop] = field(default_factory=list)
+
+    def __getitem__(self, item):
+        if item == 0:
+            return self.value
+        if item == 1:
+            return self.body
+        raise IndexError
 
 @dataclass
 class JavaInstructionLabel(JavaInstruction):
     """ Java label instruction """
-    name: str
+    name: str = ''
+
+    def __getitem__(self, item):
+        if item == 0:
+            return self.type
+        if item == 1:
+            return self.code
+        if item == 2:
+            return self.name
+        raise IndexError
 
 @dataclass
 class JavaStatementIfElse(JavaStatement):
     """ Java if-elseif-else statement """
-    if_c: list[JavaCondition | JavaConditionType]
-    if_body: list[JavaInstruction | JavaStatement | JavaLoop]
-    elseif_c: list[list[JavaCondition | JavaConditionType]]
-    elseif_body: list[list[JavaInstruction | JavaStatement | JavaLoop]]
-    else_body: list[JavaInstruction | JavaStatement | JavaLoop]
+    if_c: list[JavaCondition | JavaConditionType] = field(default_factory=list)
+    if_body: list[JavaInstruction | JavaStatement | JavaLoop] = field(default_factory=list)
+    elseif_c: list[list[JavaCondition | JavaConditionType]] = field(default_factory=list)
+    elseif_body: list[list[JavaInstruction | JavaStatement | JavaLoop]] = field(default_factory=list)
+    else_body: list[JavaInstruction | JavaStatement | JavaLoop] = field(default_factory=list)
 
 @dataclass
 class JavaStatementTryCatch(JavaStatement):
     """ Java try-catch-finally statement """
-    try_body: list[JavaInstruction | JavaStatement | JavaLoop]
-    catch_body: list[JavaInstruction | JavaStatement | JavaLoop]
-    finally_body: list[JavaInstruction | JavaStatement | JavaLoop]
-    catch_exceptions: list[JavaParam]
+    try_body: list[JavaInstruction | JavaStatement | JavaLoop] = field(default_factory=list)
+    catch_body: list[JavaInstruction | JavaStatement | JavaLoop] = field(default_factory=list)
+    finally_body: list[JavaInstruction | JavaStatement | JavaLoop] = field(default_factory=list)
+    catch_exceptions: list[JavaParam] = field(default_factory=list)
 
 @dataclass
 class JavaStatementSwitchCase(JavaStatement):
     """ Java switch-case statement """
-    switch: JavaAttribute | str
-    cases: list[JavaCase]
-    default: list[JavaInstruction]
+    switch: JavaAttribute | str = ''
+    cases: list[JavaCase] = field(default_factory=list)
+    default: list[JavaInstruction | JavaStatement | JavaLoop] = field(default_factory=list)
 
 @dataclass
 class JavaStatementSynchronized(JavaStatement):
     """ Java synchronized block statement """
-    object: str | None
-    body: list[JavaInstruction | JavaStatement | JavaLoop]
+    object: str = ''
+    body: list[JavaInstruction | JavaStatement | JavaLoop] = field(default_factory=list)
 
 @dataclass
 class JavaLoopFor(JavaLoop):
     """ Java for loop """
-    iterator: JavaAttribute | str | None
-    conditions: list[JavaCondition]
-    step: str | None
-    body: list[JavaInstruction | JavaStatement | JavaLoop]
+    iterator: JavaAttribute | str = ''
+    conditions: list[JavaCondition | JavaConditionType] = field(default_factory=list)
+    step: str = ''
+    body: list[JavaInstruction | JavaStatement | JavaLoop] = field(default_factory=list)
+
+    def __getitem__(self, item):
+        if item == 0:
+            return self.type
+        if item == 1:
+            return self.iterator
+        if item == 2:
+            return self.conditions
+        if item == 3:
+            return self.step
+        if item == 4:
+            return self.body
+        raise IndexError
 
 @dataclass
 class JavaLoopWhile(JavaLoop):
     """ Java while loop """
-    conditions: list[JavaCondition]
-    body: list[JavaInstruction | JavaStatement | JavaLoop]
+    conditions: list[JavaCondition | JavaConditionType] = field(default_factory=list)
+    body: list[JavaInstruction | JavaStatement | JavaLoop] = field(default_factory=list)
 
 @dataclass
 class JavaLoopDoWhile(JavaLoop):
     """ Java do-while loop """
-    conditions: list[JavaCondition]
-    body: list[JavaInstruction | JavaStatement | JavaLoop]
+    conditions: list[JavaCondition | JavaConditionType] = field(default_factory=list)
+    body: list[JavaInstruction | JavaStatement | JavaLoop] = field(default_factory=list)
 
 @dataclass
 class JavaMethod:
     """ Java method """
-    class_name: str
-    modifier: JavaModifier | None
-    static: bool | None
-    final: bool | None
-    abstract: bool | None
-    return_type: str
-    name: str
-    parameters: list[JavaParam]
-    throws: list[str]
-    body: list[JavaInstruction | JavaStatement | JavaLoop]
-    variables: list[JavaAttribute]
+    class_name: str = ''
+    modifier: str = ''
+    static: bool = False
+    final: bool = False
+    abstract: bool = False
+    return_type: str = ''
+    name: str = ''
+    parameters: list[JavaParam] = field(default_factory=list)
+    throws: list[str] = field(default_factory=list)
+    body: list[JavaInstruction | JavaStatement | JavaLoop] = field(default_factory=list)
+    variables: list[JavaAttribute] = field(default_factory=list)
 
 @dataclass
 class JavaMethodCall:
@@ -274,25 +338,25 @@ class JavaMethodCall:
 
 @dataclass
 class JavaClass:
-    """ Java class/interface """
-    package_name: str
-    file_name: str
-    interface: bool | None
-    enum: bool | None
-    modifier: JavaModifier | None
-    static: bool | None
-    final: bool | None
-    abstract: bool | None
-    imports: list[str]
-    name: str
-    implements: list[str]
-    extends: list[str]
-    constructors: list[JavaMethod]
-    attributes: list[JavaAttribute]
-    enums: list[EnumEntry]
-    methods: list[JavaMethod]
-    static_blocks: list[list[JavaInstruction | JavaStatement | JavaCondition]]
-    instance_blocks: list[list[JavaInstruction | JavaStatement | JavaCondition]]
+    """ Java class/interface/enum """
+    package_name: str = ''
+    file_name: str = ''
+    interface: bool | None = None
+    enum: bool | None = None
+    modifier: str | None = None
+    static: bool | None = None
+    final: bool | None = None
+    abstract: bool | None = None
+    imports: list[str] = field(default_factory=list)
+    name: str = ''
+    implements: list[str] = field(default_factory=list)
+    extends: list[str] = field(default_factory=list)
+    constructors: list[JavaMethod] = field(default_factory=list)
+    attributes: list[JavaAttribute] = field(default_factory=list)
+    enums: list[EnumEntry] = field(default_factory=list)
+    methods: list[JavaMethod] = field(default_factory=list)
+    static_blocks: list[list[JavaInstruction | JavaStatement | JavaCondition]] = field(default_factory=list)
+    instance_blocks: list[list[JavaInstruction | JavaStatement | JavaCondition]] = field(default_factory=list)
 
     def find_attribute_by_name(self, name: str) -> int | None:
         """
@@ -322,16 +386,16 @@ class JavaPackage:
         :param name:
         :return: Tuple (class index, method index)
         """
-        return next((i, j for i, c in enumerate(self.classes)
-                     for j, m in enumerate(c.methods) if m.name == name), None)
+        # TODO
+        return None
 
-    def find_class_by_name(self, name: str) -> int | None:
+    def find_class_by_name(self, name: str) -> JavaClass | None:
         """
         Find class by name and return the index
         :param name:
         :return:
         """
-        return next((i for i, c in enumerate(self.classes) if c.name == name), None)
+        return next((c for c in self.classes if c.name == name), None)
 
 @dataclass
 class JavaProject:
@@ -339,9 +403,31 @@ class JavaProject:
     name: str
     packages: list[JavaPackage]
 
-    def find_package_by_name(self, name: str) -> int | None:
+    def find_methods_by_name(self, name: str) -> tuple[int, int, int] | None:
         """
-        Find package by name and return the index
+        Find all methods within all classes by name and return their indices
+        :param name:
+        :return: Tuple (package index, class index, method index)
+        """
+        # TODO
+        return None
+
+    def find_classes_by_name(self, name: str) -> list[tuple[int, int]]:
+        """
+        Find all classes by name and return their indices
+        :param name:
+        :return: Tuple (package index, class index)
+        """
+        indices = []
+        for i, p in enumerate(self.packages):
+            for j, c in enumerate(p.classes):
+                if c.name == name:
+                   indices.append((i, j))
+        return indices
+
+    def find_package_by_name(self, name: str) -> JavaPackage | None:
+        """
+        Find package by name
         :param name:
         :return:
         """
@@ -374,9 +460,9 @@ class Parser:
         self.prev_token = self.token
         self.token = self.tokens.__next__()
 
-    def search(self, path: str) -> None:
+    def read(self, path: str) -> None:
         """
-        Search through tokens of Java file
+        Read through tokens of Java file
         :param path:
         """
         self.tokens = javalang.tokenizer.tokenize(open(path).read())
@@ -457,23 +543,7 @@ class Parser:
         self.current_package = self.project.find_package_by_name(package_name)
         self.current_package.classes.append(JavaClass(
             package_name=self.current_package.name,
-            file_name=basename(path),
-            interface=None,
-            enum=None,
-            modifier=None,
-            static=None,
-            final=None,
-            abstract=None,
-            imports=[],
-            name='',
-            implements=[],
-            extends=[],
-            constructors=[],
-            attributes=[],
-            enums=[],
-            methods=[],
-            static_blocks=[],
-            instance_blocks=[]
+            file_name=basename(path)
         ))
         self.current_class = self.current_package.classes[len(self.current_package.classes) - 1]
 
@@ -489,7 +559,7 @@ class Parser:
             self.t_next()
         self.current_class.imports.append(import_name)
 
-    def update_class(self, modifier: JavaModifier, static: bool, final: bool, abstract: bool) -> None:
+    def update_class(self, modifier: str, static: bool, final: bool, abstract: bool) -> None:
         """
         Update class properties, and add all classes that it extends and/or implements
         :param modifier: Access modifier
@@ -522,7 +592,7 @@ class Parser:
         self.depth += 1
 
     def create_class_method_or_attribute_basic_type(self,
-                                                    modifier: JavaModifier,
+                                                    modifier: str,
                                                     static: bool,
                                                     final: bool,
                                                     abstract: bool) -> None:
@@ -565,7 +635,7 @@ class Parser:
 
 
     def create_class_attribute( self,
-                                modifier: JavaModifier,
+                                modifier: str,
                                 static: bool,
                                 final: bool,
                                 _type: str,
@@ -612,7 +682,7 @@ class Parser:
             ))
 
     def create_class_method(self,
-                            modifier: JavaModifier,
+                            modifier: str,
                             static: bool,
                             final: bool,
                             abstract: bool,
@@ -646,13 +716,12 @@ class Parser:
             name=name,
             parameters=params,
             throws=throws,
-            body=body,
-            variables=[]
+            body=body
         ))
         self.current_method = self.current_class.methods[len(self.current_class.methods) - 1]
 
     def create_class_method_or_attribute_complex_type(self,
-                                                      modifier: JavaModifier,
+                                                      modifier: str,
                                                       static: bool,
                                                       final: bool,
                                                       abstract: bool) -> None:
@@ -687,7 +756,7 @@ class Parser:
             self.create_class_attribute(modifier, static, final, type_or_name, _name)
 
     def create_class_constructor(self,
-                                 modifier: JavaModifier,
+                                 modifier: str,
                                  static: bool,
                                  final: bool,
                                  abstract: bool,
@@ -720,8 +789,7 @@ class Parser:
             name=name,
             parameters=params,
             throws=throws,
-            body=body,
-            variables=[]
+            body=body
         ))
         self.current_method = self.current_class.constructors[len(self.current_class.constructors) - 1]
 
@@ -809,10 +877,7 @@ class Parser:
         Decode and return the current instruction of a method
         :return: JavaInstruction data object
         """
-        instruction = JavaInstruction(
-            type=JavaInstructionType.UNKNOWN,
-            code=''
-        )
+        instruction = JavaInstruction(type=JavaInstructionType.UNKNOWN)
         code = ''
 
         _type: JavaInstructionType | JavaStatementType | None = None
@@ -848,7 +913,7 @@ class Parser:
             self.t_next()
             if self.token.value == JavaSeparator.COLON.value:
                 self.t_next()
-                return JavaInstructionLabel(type=JavaInstructionType.LABEL, name=temp, code='')
+                return JavaInstructionLabel(type=JavaInstructionType.LABEL, name=temp)
             code += temp
             if self.token.__class__.__name__ == javalang.tokenizer.Identifier.__name__:
                 code += ' '
@@ -970,12 +1035,7 @@ class Parser:
         Create a Java switch-case statement instruction with its body instructions
         :return: JavaStatement data object
         """
-        statement = JavaStatementSwitchCase(
-            type=JavaStatementType.SWITCH_CASE,
-            switch='',
-            cases=[],
-            default=[]
-        )
+        statement = JavaStatementSwitchCase(type=JavaStatementType.SWITCH_CASE)
         eoi = False
         eov = False
         depth = 0
@@ -1014,11 +1074,7 @@ class Parser:
         Create a synchronized block statement with its body instructions
         :return: JavaStatement data object
         """
-        statement = JavaStatementSynchronized(
-            type=JavaStatementType.SYNCHRONIZED,
-            object=None,
-            body=[]
-        )
+        statement = JavaStatementSynchronized(type=JavaStatementType.SYNCHRONIZED)
         if self.token.value == JavaSeparator.BRACKET_OPEN.value:
             self.t_next()
         _object = ''
@@ -1037,13 +1093,7 @@ class Parser:
         Create a for loop instruction with its body instructions
         :return: JavaLoop data object
         """
-        loop = JavaLoopFor(
-            type=JavaLoopType.FOR,
-            iterator=None,
-            conditions=[],
-            step=None,
-            body=[],
-        )
+        loop = JavaLoopFor(type=JavaLoopType.FOR)
         step = ''
         step_end = False
         depth = 0
@@ -1111,7 +1161,7 @@ class Parser:
         :return: List of JavaCondition data objects
         """
         conditions: list[JavaCondition | JavaConditionType] = []
-        condition = JavaCondition(lop=None, op=None, rop=None, depth=0)
+        condition = JavaCondition()
         buffer = ''
         depth = 0
         eoc = False
@@ -1130,7 +1180,7 @@ class Parser:
                     condition.rop = buffer
                     condition.depth = depth
                     conditions.append(condition)
-                    condition = JavaCondition(lop=None, op=None, rop=None, depth=0)
+                    condition = JavaCondition()
                     buffer = ''
                 depth -= 1
 
@@ -1144,7 +1194,7 @@ class Parser:
                     conditions.append(JavaConditionType.OR)
                 elif self.token.value == JavaOperator.XOR.value:
                     conditions.append(JavaConditionType.XOR)
-                condition = JavaCondition(lop=None, op=None, rop=None, depth=0)
+                condition = JavaCondition()
                 buffer = ''
                 self.t_next()
                 continue
