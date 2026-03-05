@@ -66,8 +66,9 @@ class MCPSCR:
         logger.info('Reading presets')
         for preset in glob('presets/**/*.json', recursive=True):
             try:
-                data = loads(open(preset).read())
-                self.presets.append((preset, data['name'], data['description']))
+                data: dict = loads(open(preset).read())
+                desc = data.get('description')
+                self.presets.append((preset, data['name'], desc if desc is not None else ''))
             except Exception as e:
                 logger.error(f'Failed to load preset file {preset}!')
                 logger.error(f'Exception: {e}')
